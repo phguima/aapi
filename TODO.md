@@ -57,8 +57,8 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado. Rem
 - [ ] 🟡 `bootstrap.sh:65` — aviso "NVIDIA driver install requires reboot".
 - [ ] 🟡 `README.md` — seção "NVIDIA Users" do fluxo em 3 passos, tags `nvidia`/`drivers`/`power`,
       troubleshooting de freeze NVIDIA/ASUS.
-- [ ] 🟡 `secrets.yml` (vault) — a variável `mok_password` deixa de ser usada; remover na próxima
-      edição do vault (`ansible-vault edit`).
+- [ ] ~~`secrets.yml` — remover `mok_password`~~ **não remover**: passa a ser usada pela assinatura
+      do VirtualBox com Secure Boot (seção 5).
 - [ ] ✅ Manter `nvtop` — também monitora GPU Intel/AMD.
 
 ## 4. Multimídia / aceleração de vídeo (`group_vars/all/all.yml`)
@@ -88,9 +88,22 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       - Tirar `VirtualBox` de `dnf_packages_common` e instalar `VirtualBox-7.2` numa task própria.
       - Pré-requisitos do build do `vboxdrv`: `kernel-devel`, `gcc`, `make`, `elfutils-libelf-devel`.
       - O pacote da Oracle já cria o grupo `vboxusers`; as tasks de grupo existentes continuam valendo.
-      - Secure Boot: **desligado no alvo** (`mokutil --sb-state` → `SecureBoot disabled`, 2026-09-29).
-        Não automatizar assinatura MOK do `vboxdrv`. Se um dia ligar o Secure Boot, o módulo deixa
-        de carregar até ser assinado.
+      - Secure Boot: hoje **desligado no alvo** (`SecureBoot disabled`, 2026-09-29), mas o playbook
+        deve detectar e se adaptar. Validado lendo o `vboxdrv.sh` do pacote `VirtualBox-7.2` el10:
+        o script da Oracle **já assina sozinho** (em qualquer distro, não só Debian) se existir a
+        chave em `/var/lib/shim-signed/mok/MOK.{der,priv}` e o `sign-file` do `kernel-devel`.
+        E no boot, se não houver módulo para o kernel atual, ele recompila e reassina — então
+        updates de kernel ficam cobertos sem hook extra. Plano:
+        1. `env_setup.yml`: fact `is_secure_boot` a partir de `mokutil --sb-state`
+           (`SecureBoot enabled` → true; qualquer outra saída → false).
+        2. Se `is_secure_boot`, **antes** de instalar o VirtualBox: criar `/var/lib/shim-signed/mok`
+           (0700), gerar a chave com `openssl req ... -addext extendedKeyUsage=codeSigning`
+           (`creates:` MOK.priv) e, se `mokutil --test-key` disser que não está registrada nem
+           pendente, `mokutil --import` com `mok_password` do vault.
+        3. Instalar `VirtualBox-7.2` — o postinst compila e assina.
+        4. Avisar: reboot + registrar a chave na tela azul do MokManager (passo manual inevitável).
+        - Consequência: **manter `mok_password` no vault** (a seção 3 previa remover).
+        - Teste do ramo com Secure Boot só em VM com firmware OVMF Secure Boot, não em container.
 - [ ] 🟠 `p7zip` / `p7zip-plugins` — resolvem via *provides* para `7zip-standalone` / `7zip`.
       Funciona, mas trocar pelos nomes reais.
 - [ ] 🟡 `clamav-update` resolve para `clamav-freshclam`; `vim` → `vim-enhanced`; `shellcheck` →
