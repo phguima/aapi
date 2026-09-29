@@ -15,7 +15,7 @@ Legenda: 🔴 quebra o playbook · 🟠 funciona errado / silenciosamente · �
 - [x] 🔴 **Habilitar CRB + EPEL antes de tudo** (role `update`): `dnf config-manager --set-enabled crb`
       e `dnf install epel-release` (vem do repo `extras` do Alma). Metade dos pacotes do `apps`
       vem do EPEL, e o RPM Fusion EL depende dele.
-- [ ] 🔴 **URLs do RPM Fusion** (`update` e `nvidia`): trocar `.../free/fedora/...` e
+- [x] 🔴 **URLs do RPM Fusion** (`update`; a do `nvidia` sai junto com o role na seção 3): trocar `.../free/fedora/...` e
       `.../nonfree/fedora/...` por `.../free/el/...` e `.../nonfree/el/...`
       (`rpmfusion-{free,nonfree}-release-10.noarch.rpm`). Validado: ambos existem.
 - [ ] 🟠 Considerar assertar `ansible_facts['distribution'] == 'AlmaLinux'` e major `10` no
