@@ -1,0 +1,149 @@
+---
+# Tasks for 'hardware' role
+
+# --- NVIDIA Post Install Configuration ---
+#- name: NVIDIA | Mark akmod-nvidia as user-installed to prevent autoremove
+#  ansible.builtin.command: sudo dnf mark user akmod-nvidia
+#  when: is_nvidia and has_nvidia_driver
+#  tags: [hardware, setup]
+
+#- name: NVIDIA | Install power management packages
+#  ansible.builtin.dnf:
+#    name: xorg-x11-drv-nvidia-power
+#    state: present
+#  when: is_nvidia and has_nvidia_driver
+#  tags: [hardware, power]
+
+#- name: NVIDIA | Enable power management services
+#  ansible.builtin.systemd:
+#    name: "{{ item }}"
+#    enabled: yes
+#    state: started
+#    daemon_reload: yes
+#  loop:
+#    - nvidia-suspend.service
+#    - nvidia-resume.service
+#    - nvidia-hibernate.service
+#  when: is_nvidia and has_nvidia_driver
+#  tags: [hardware, power]
+
+- name: NVIDIA | Install NVIDIA Vulkan support
+  ansible.builtin.dnf:
+    name: "{{ nvidia_vulkan_packages }}"
+    state: present
+  when: is_nvidia and has_nvidia_driver
+  tags: [hardware, multimedia]
+
+- name: Hardware | Install NVIDIA VA-API and NVENC/NVDEC support
+  ansible.builtin.dnf:
+    name: "{{ nvidia_multimedia_packages }}"
+    state: present
+  when: is_nvidia and has_nvidia_driver
+  tags: [software, multimedia]
+
+- name: Hardware | Configure NVIDIA Power Management
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/nvidia.conf
+    content: |
+      # Enable deep power management
+      options nvidia NVreg_DynamicPowerManagement=0x02
+      options nvidia NVreg_EnableS0ixPowerManagement=1
+
+      # Improve suspend/resume stability (Fedora uses tmpfs for /tmp)
+      options nvidia NVreg_TemporaryFilePath=/var/tmp
+    owner: root
+    group: root
+    mode: '0644'
+  when: is_nvidia and has_nvidia_driver
+  tags: [hardware, power]
+
+  # --- ASUS ROG Installation ---
+- name: ASUS | Enable ROG copr repository
+  community.general.copr:
+    name: "{{ asus_copr_repo }}"
+    state: enabled
+  when: is_asus
+  tags: [hardware, asus]
+
+- name: ASUS | Refresh DNF cache for copr
+  ansible.builtin.dnf:
+    update_cache: yes
+  when: is_asus
+  tags: [hardware, asus]
+
+- name: ASUS | Install ASUS ROG packages
+  ansible.builtin.dnf:
+    name: "{{ asus_packages }}"
+    state: present
+  when: is_asus
+  tags: [hardware, asus]
+
+- name: ASUS | Ensure /etc/asusd directory exists
+  ansible.builtin.file:
+    path: /etc/asusd
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: is_asus
+  tags: [hardware, asus]
+
+- name: ASUS | Enable and start supergfxd.service
+  ansible.builtin.systemd:
+    name: supergfxd.service
+    enabled: yes
+    state: started
+  when: is_asus
+  tags: [hardware, asus]
+
+- name: ASUS | Ensure autostart directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.config/autostart"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+  when: is_asus and user_name != 'root'
+  tags: [hardware, asus]
+
+- name: ASUS | Add ASUS ROG GUI to autostart
+  ansible.builtin.copy:
+    src: "/usr/share/applications/rog-control-center.desktop"
+    dest: "{{ user_home }}/.config/autostart/rog-control-center.desktop"
+    remote_src: yes
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+  when: is_asus and user_name != 'root'
+  tags: [hardware, asus]
+
+# --- GPU Specific Hardware Acceleration ---
+- name: Hardware | Install intel media drivers
+  ansible.builtin.dnf:
+    name: "{{ intel_media_packages }}"
+    state: present
+  when: is_intel
+  tags: [hardware, intel]
+
+- name: Hardware | Install AMD VA-API and VDPAU (Freeworld)
+  ansible.builtin.dnf:
+    name: "{{ amd_multimedia_packages }}"
+    state: present
+    allowerasing: true
+  when: is_amd
+  tags: [hardware, amd]
+
+# --- Multimedia Codecs & FFmpeg Swap ---
+- name: Codecs | Swap ffmpeg-free for full ffmpeg (RPM Fusion)
+  ansible.builtin.dnf:
+    name: ffmpeg
+    allowerasing: yes
+    state: present
+  tags: [hardware, codecs, ffmpeg]
+
+- name: Codecs | Install Multimedia Group and Codecs
+  ansible.builtin.dnf:
+    name: "{{ multimedia_packages }}"
+    state: present
+    update_cache: yes
+  tags: [hardware, codecs, multimedia]

@@ -1,0 +1,35 @@
+---
+# Master Playbook for AAPI (Ansible AlmaLinux Post-Install)
+
+- name: AAPI | Ansible AlmaLinux Post-Install
+  hosts: localhost
+  become: yes
+
+  pre_tasks:
+    - name: AAPI | Environment Setup
+      ansible.builtin.import_tasks: tasks/env_setup.yml
+      tags: [always]
+
+  roles:
+    - { role: update, tags: [update] }
+    - { role: nvidia, tags: [nvidia] }
+    - { role: hardware, tags: [hardware, drivers] }
+    - { role: common, tags: [common, system] }
+    - { role: apps, tags: [apps, software] }
+    - { role: desktop, tags: [desktop, UI] }
+    - { role: ai_tools, tags: [ai, gemini] }
+
+  post_tasks:
+    - name: AFPI | Final Status
+      ansible.builtin.debug:
+        msg: 
+          - "==========================================================="
+          - "  AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!                  "
+          - "  Your AlmaLinux workstation is now optimized and ready.      "
+          - "==========================================================="
+      tags: [always]
+
+  handlers:
+    - name: Regenerate GRUB
+      ansible.builtin.command: grub2-mkconfig -o /etc/grub2-efi.cfg
+

@@ -1,0 +1,156 @@
+---
+# Tasks for 'desktop' role
+
+# --- Fonts Installation ---
+- name: Software | Install Selected Fonts
+  ansible.builtin.dnf:
+    name: "{{ fonts_packages }}"
+    state: present
+  tags: [desktop, fonts]
+
+# --- KDE Specific Configuration ---
+- name: KDE | Ensure konsole directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.local/share/konsole"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+- name: KDE | Copy konsole profile
+  ansible.builtin.copy:
+    src: "kali-like-alt.profile"
+    dest: "{{ user_home }}/.local/share/konsole/kali-like-alt.profile"
+    owner: "{{ user_name }}"
+    mode: '0644'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+- name: KDE | Copy konsole color scheme
+  ansible.builtin.copy:
+    src: "kali-like-alt.colorscheme"
+    dest: "{{ user_home }}/.local/share/konsole/kali-like-alt.colorscheme"
+    owner: "{{ user_name }}"
+    mode: '0644'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+- name: KDE | Disable konsole 'Remember window size'
+  community.general.ini_file:
+    path: "{{ user_home }}/.config/konsolerc"
+    section: "KonsoleWindow"
+    option: RememberWindowSize
+    value: "false"
+    owner: "{{ user_name }}"
+    mode: '0644'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+- name: KDE | Set default konsole profile
+  community.general.ini_file:
+    path: "{{ user_home }}/.config/konsolerc"
+    section: "Desktop Entry"
+    option: DefaultProfile
+    value: "kali-like-alt.profile"
+    owner: "{{ user_name }}"
+    mode: '0644'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+- name: KDE | Expand individual tab widths to full window
+  community.general.ini_file:
+    path: "{{ user_home }}/.config/konsolerc"
+    section: "TabBar"
+    option: ExpandTabWidth
+    value: "true"
+    owner: "{{ user_name }}"
+    mode: '0644'
+  when: is_kde and user_name != 'root'
+  tags: [desktop, kde, konsole]
+
+# --- GNOME Specific Configuration (PTYxis) ---
+- name: GNOME | Set PTYxis terminal window size and behavior
+  ansible.builtin.command: "gsettings set org.gnome.Ptyxis {{ item.key }} {{ item.value }}"
+  become_user: "{{ user_name }}"
+  loop:
+    - { key: "restore-window-size", value: "{{ ptyxis_restore_window_size }}" }
+    - { key: "default-columns", value: "{{ ptyxis_default_columns }}" }
+    - { key: "default-rows", value: "{{ ptyxis_default_rows }}" }
+  when: is_gnome and user_name != 'root'
+  tags: [desktop, gnome, ptyxis]
+
+- name: GNOME | Set PTYxis cursor and font settings
+  ansible.builtin.command: "dconf write /org/gnome/Ptyxis/{{ item.key }} \"{{ item.value }}\""
+  become_user: "{{ user_name }}"
+  loop:
+    - { key: "cursor-shape", value: "'{{ ptyxis_cursor_shape }}'" }
+    - { key: "cursor-blink-mode", value: "'{{ ptyxis_cursor_blink_mode }}'" }
+    - { key: "use-system-font", value: "{{ ptyxis_use_system_font }}" }
+    - { key: "font-name", value: "'{{ ptyxis_font_name }}'" }
+  when: is_gnome and user_name != 'root'
+  tags: [desktop, gnome, ptyxis]
+
+- name: GNOME | Get PTYxis default profile UUID
+  ansible.builtin.shell: dconf read /org/gnome/Ptyxis/default-profile-uuid | tr -d "'"
+  register: ptyxis_default_uuid
+  become_user: "{{ user_name }}"
+  changed_when: false
+  when: is_gnome and user_name != 'root'
+  tags: [desktop, gnome, ptyxis]
+
+- name: GNOME | Set PTYxis transparency
+  ansible.builtin.command: "dconf write /org/gnome/Ptyxis/Profiles/{{ ptyxis_default_uuid.stdout }}/opacity {{ ptyxis_opacity }}"
+  become_user: "{{ user_name }}"
+  when: 
+    - is_gnome 
+    - user_name != 'root'
+    - ptyxis_default_uuid.stdout != ""
+  tags: [desktop, gnome, ptyxis]
+
+# --- Cedilla Configuration ---
+- name: Cedilla | Find system compose file
+  ansible.builtin.shell: |
+    LANG_VAL=${LANG:=en_US.UTF-8}
+    COMPOSE_DIR="/usr/share/X11/locale"
+    sed -ne "s/^\([^:]*\):[ \t]*$LANG_VAL/\1/p" <"${COMPOSE_DIR}/compose.dir" | head -1
+  register: system_compose_name
+  changed_when: false
+  tags: [desktop, cedilla]
+
+- name: Cedilla | Ensure .XCompose exists (copy from system)
+  ansible.builtin.copy:
+    src: "/usr/share/X11/locale/{{ system_compose_name.stdout }}"
+    dest: "{{ user_home }}/.XCompose"
+    remote_src: yes
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+    force: no
+  when: 
+    - system_compose_name.stdout != ""
+    - user_name != 'root'
+  tags: [desktop, cedilla]
+
+- name: Cedilla | Apply character mapping for cedilla (ç)
+  ansible.builtin.replace:
+    path: "{{ user_home }}/.XCompose"
+    regexp: "{{ item.regex }}"
+    replace: "{{ item.replace }}"
+  # Replace the keysyms too (U0107/U0106): apps that read the keysym instead of the string
+  # (e.g. Chromium on Wayland) would otherwise still get "ć".
+  loop:
+    - { regex: 'ć', replace: 'ç' }
+    - { regex: 'Ć', replace: 'Ç' }
+    - { regex: 'U0107', replace: 'ccedilla' }
+    - { regex: 'U0106', replace: 'Ccedilla' }
+  when: user_name != 'root'
+  tags: [desktop, cedilla]
+
+- name: Cedilla | Display completion message
+  ansible.builtin.debug:
+    msg:
+      - "Cedilla fix applied to {{ user_home }}/.XCompose."
+      - "Please log out of your session and re-login to effect changes."
+  tags: [desktop, cedilla]

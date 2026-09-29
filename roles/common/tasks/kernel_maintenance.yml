@@ -1,0 +1,45 @@
+---
+# Kernel maintenance tasks: cleanup old kernels and debug packages
+
+- name: Kernel | Prevent removal of debug packages if running debug kernel
+  ansible.builtin.fail:
+    msg: "You are currently running a DEBUG kernel ({{ ansible_facts['kernel'] }}). Please boot into a normal kernel before proceeding."
+  when: "'debug' in ansible_facts['kernel']"
+  tags: [system, kernel]
+
+- name: Kernel | Get list of installed debug kernels
+  ansible.builtin.shell: dnf repoquery --installed "kernel*debug*" -q
+  register: installed_debug_kernels
+  changed_when: false
+  failed_when: false
+  tags: [system, kernel]
+
+- name: Kernel | Remove kernel debug packages
+  ansible.builtin.dnf:
+    name: "{{ installed_debug_kernels.stdout_lines }}"
+    state: absent
+  when: installed_debug_kernels.stdout_lines | length > 0
+  tags: [system, kernel]
+
+- name: Kernel | Disable debug repositories
+  ansible.builtin.shell: dnf config-manager setopt "*debug*".enabled=0
+  changed_when: false
+  failed_when: false
+  tags: [system, kernel]
+
+- name: Kernel | Get list of old kernels
+  ansible.builtin.shell: |
+    dnf repoquery --installonly --latest-limit=-1 -q | grep -v $(uname -r)
+  register: old_kernels_list
+  changed_when: false
+  failed_when: false
+  tags: [system, kernel]
+
+- name: Kernel | Remove old kernels
+  ansible.builtin.dnf:
+    name: "{{ old_kernels_list.stdout_lines }}"
+    state: absent
+  when: 
+    - old_kernels_list.stdout_lines | length > 0
+    - not ansible_check_mode
+  tags: [system, kernel]

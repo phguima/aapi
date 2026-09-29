@@ -1,0 +1,192 @@
+---
+# Tasks for 'apps' role
+
+# --- DNF Software Installation ---
+- name: Software | Install KDE specific DNF packages
+  ansible.builtin.dnf:
+    name: "{{ dnf_packages_kde }}"
+    state: present
+  when: is_kde
+  tags: [software, dnf, kde]
+
+- name: Software | Install GNOME specific DNF packages
+  ansible.builtin.dnf:
+    name: "{{ dnf_packages_gnome }}"
+    state: present
+  when: is_gnome
+  tags: [software, dnf, gnome]
+
+- name: Software | Install DNF packages
+  ansible.builtin.dnf:
+    name: "{{ dnf_packages_common }}"
+    state: present
+  tags: [software, dnf, common]
+
+- name: ClamAV | Enable and start freshclam service
+  ansible.builtin.systemd:
+    name: clamav-freshclam.service
+    enabled: yes
+    state: started
+  tags: [software, clamav]
+
+# --- VirtualBox Configuration ---
+- name: VirtualBox | Ensure vboxusers and vboxsf groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - vboxusers
+    - vboxsf
+  tags: [software, virtualbox]
+
+- name: VirtualBox | Add user to vboxusers and vboxsf groups
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: 
+      - vboxusers
+      - vboxsf
+    append: yes
+  when: user_name != 'root'
+  tags: [software, virtualbox]
+
+- name: Software | Install KDE specific flatpak applications
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+    remote: flathub
+  loop: "{{ flatpak_apps_kde }}"
+  when: is_kde
+  tags: [software, flatpak, kde]
+
+- name: Software | Install GNOME specific flatpak applications
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+    remote: flathub
+  loop: "{{ flatpak_apps_gnome }}"
+  when: is_gnome
+  tags: [software, flatpak, gnome]
+
+- name: Software | Install flatpak applications
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+    remote: flathub
+  loop: "{{ flatpak_apps_common }}"
+  tags: [software, flatpak, common]
+
+# --- Brave Installation ---
+- name: Brave | Add Brave repository
+  ansible.builtin.yum_repository:
+    name: brave-browser
+    description: Brave Browser
+    baseurl: "{{ brave_repo_url }}"
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: "{{ brave_gpg_key }}"
+  tags: [software, brave]
+
+- name: Brave | Install Brave
+  ansible.builtin.dnf:
+    name: "{{ brave_packages }}"
+    #name: brave-browser
+    state: present
+  tags: [software, brave]
+
+# --- Visual Studio Code Installation ---
+- name: VSCode | Add Visual Studio Code repository
+  ansible.builtin.yum_repository:
+    name: code
+    description: Visual Studio Code
+    baseurl: "{{ vscode_repo_url }}"
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: "{{ vscode_gpg_key }}"
+  tags: [software, vscode]
+
+- name: VSCode | Install Visual Studio Code
+  ansible.builtin.dnf:
+    name: code
+    state: present
+  tags: [software, vscode]
+
+# --- GitHub CLI Installation ---
+- name: GitHub CLI | Add GitHub CLI repository
+  ansible.builtin.yum_repository:
+    name: gh-cli
+    description: packages for the GitHub CLI
+    baseurl: "{{ gh_repo_url }}"
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: "{{ gh_gpg_key }}"
+  tags: [software, gh]
+
+- name: GitHub CLI | Install GitHub CLI
+  ansible.builtin.dnf:
+    name: gh
+    state: present
+  tags: [software, gh]
+
+# --- Shortcuts & Overrides ---
+- name: Shortcuts | Ensure local applications directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.local/share/applications"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+  when: user_name != 'root'
+  tags: [software, shortcuts]
+
+- name: Shortcuts | Create local override for Steam shortcut
+  ansible.builtin.copy:
+    src: /usr/share/applications/steam.desktop
+    dest: "{{ user_home }}/.local/share/applications/steam.desktop"
+    remote_src: yes
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+    force: no
+  when: user_name != 'root'
+  tags: [software, steam, gpu]
+
+- name: Shortcuts | Update Exec line to use NVIDIA GPU
+  ansible.builtin.replace:
+    path: "{{ user_home }}/.local/share/applications/steam.desktop"
+    regexp: '^Exec=/usr/bin/steam\s+(.*)$'
+    replace: 'Exec=env __NV_PRIME_RENDER_OFFLOAD=1 __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 __GLX_VENDOR_LIBRARY_NAME=nvidia /usr/bin/steam \1'
+  when: user_name != 'root'
+  tags: [software, steam, gpu]
+
+- name: Shortcuts | Update desktop database
+  ansible.builtin.command:
+    cmd: "update-desktop-database {{ user_home }}/.local/share/applications/"
+  become_user: "{{ user_name }}"
+  changed_when: false
+  when: user_name != 'root'
+  tags: [software, steam, gpu]
+
+# --- Flatpak overrides and cedilla fixes ---
+# Bitwarden runs on native Wayland (the Flatpak wrapper picks the display mode from the granted
+# sockets); the cedilla works there without GTK_IM_MODULE. X11 stays only as a fallback.
+- name: Wayland | Apply Flatpak overrides for Bitwarden (KDE)
+  ansible.builtin.command:
+    cmd: "flatpak override --user --socket=wayland --socket=fallback-x11 --nosocket=x11 --unset-env=GTK_IM_MODULE --env=XDG_CURRENT_DESKTOP=KDE --env=GTK_USE_PORTAL=1 com.bitwarden.desktop"
+  become_user: "{{ user_name }}"
+  register: bitwarden_override_kde
+  failed_when: false
+  changed_when: false
+  when: is_kde and user_name != 'root'
+  tags: [desktop, cedilla, flatpak]
+
+# Zoom hardcodes QT_QPA_PLATFORM=xcb, so it always runs on XWayland; the cedilla works there
+# through ~/.XCompose without the IM modules (--unset-env only cleans up older overrides).
+- name: Zoom | Apply Flatpak overrides (KDE)
+  ansible.builtin.command:
+    cmd: "flatpak override --user --socket=wayland --unset-env=GTK_IM_MODULE --unset-env=QT_IM_MODULE --env=XDG_CURRENT_DESKTOP=KDE --env=GTK_USE_PORTAL=1 --nofilesystem=home us.zoom.Zoom"
+  become_user: "{{ user_name }}"
+  register: zoom_override
+  failed_when: false
+  changed_when: false
+  when: is_kde and user_name != 'root'
+  tags: [desktop, zoom, cedilla, flatpak]

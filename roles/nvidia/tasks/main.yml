@@ -1,0 +1,77 @@
+---
+# NVIDIA proprietary driver installation (signed)
+
+- name: NVIDIA | Check if NVIDIA GPU is present
+  set_fact:
+    is_nvidia_present: "{{ is_nvidia | default(false) }}"
+  tags: [nvidia, hardware]
+
+- name: NVIDIA | Check if NVIDIA drivers are already installed
+  ansible.builtin.command: nvidia-smi
+  register: nvidia_installed_check
+  failed_when: false
+  changed_when: false
+  tags: [nvidia, hardware]
+
+- name: NVIDIA | Driver Installation Block
+  block:
+    - name: NVIDIA | Ensure RPM Fusion Non-Free is enabled
+      ansible.builtin.dnf:
+        name: 
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+        state: present
+        disable_gpg_check: yes
+
+    - name: NVIDIA | Install prerequisites
+      ansible.builtin.dnf:
+        name: "{{ nvidia_prerequisite_packages }}"
+        state: present
+
+    - name: NVIDIA | Generate MOK key (kmodgenca)
+      ansible.builtin.shell: kmodgenca --force -a
+      register: kmodgenca_result
+      failed_when: false
+    
+    - name: NVIDIA | Import MOK key (Secure Boot)
+      ansible.builtin.shell: |
+        echo -e "{{ mok_password | default('fedora-afpi') }}\n{{ mok_password | default('fedora-afpi') }}" | mokutil --import /etc/pki/akmods/certs/public_key.der
+      when: 
+        - kmodgenca_result.rc == 0
+
+    - name: NVIDIA | Install NVIDIA drivers and related packages
+      ansible.builtin.dnf:
+        name: "{{ nvidia_driver_packages }}"
+        state: present
+
+    - name: NVIDIA | Wait for kernel modules (akmods) to build
+      ansible.builtin.shell: |
+        while pgrep -x "akmods" > /dev/null || pgrep -x "rpmbuild" > /dev/null; do
+          sleep 5
+        done
+      async: 1200
+      poll: 10
+      changed_when: false
+
+    - name: NVIDIA | Force akmods to rebuild and sign modules
+      ansible.builtin.shell: |
+        akmods --force --kernel $(uname -r) --akmod nvidia
+      register: akmods_force_result
+      changed_when: true
+      failed_when: false
+
+    - name: NVIDIA | Update initramfs (dracut)
+      ansible.builtin.shell: dracut --force
+      when: akmods_force_result.rc == 0
+      changed_when: true
+      failed_when: false
+
+    - name: NVIDIA | Recommend Reboot
+      ansible.builtin.debug:
+        msg: 
+          - "=================================================="
+          - "A system REBOOT is REQUIRED to enroll the MOK key."
+          - "=================================================="
+  when: 
+    - is_nvidia_present
+    - nvidia_installed_check.rc != 0
+  tags: [nvidia]

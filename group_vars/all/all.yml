@@ -1,0 +1,190 @@
+---
+# DNF Optimization
+dnf_max_parallel_downloads: 15
+dnf_fastestmirror: "True"
+
+# System Settings
+system_hostname: "noir"
+
+# GRUB Settings
+grub_timeout: 5
+grub_gfxmode: "1920x1080x32,1280x720x32,auto"
+grub_gfxpayload: "keep"
+grub_terminal_output: "gfxterm"
+
+# Hardware Drivers
+intel_media_packages:
+  - libva-intel-driver
+  - intel-media-driver
+#  - libvdpau-va-gl // Retired into Fedora 44 release
+
+amd_multimedia_packages:
+  - mesa-va-drivers-freeworld
+#  - mesa-vdpau-drivers-freeworld
+  - libva-utils
+  - vdpauinfo
+
+# Multimedia Packages
+multimedia_packages:
+  - "@multimedia"
+  - gstreamer1-plugins-bad-free-extras
+  - gstreamer1-plugins-bad-freeworld
+  - gstreamer1-plugins-ugly
+  - gstreamer1-libav
+
+nvidia_prerequisite_packages:
+  - akmods
+  - kmodtool
+  - openssl
+  - mokutil
+
+nvidia_driver_packages:
+  - akmod-nvidia
+  - gcc
+  - kernel-devel
+  - kernel-headers
+  - xorg-x11-drv-nvidia
+  - xorg-x11-drv-nvidia-cuda
+  - xorg-x11-drv-nvidia-libs
+  - xorg-x11-drv-nvidia-libs.i686
+
+nvidia_multimedia_packages:
+  - libva-nvidia-driver
+  - xorg-x11-drv-nvidia-cuda-libs
+
+nvidia_vulkan_packages:
+  - vulkan
+  - xorg-x11-drv-nvidia-cuda-libs  
+
+# Packages and Apps
+dnf_packages_common:
+  - argyllcms
+#  - btrfs-assistant
+  - chkrootkit
+  - chromium
+  - clamav
+  - clamav-update
+#  - darktable
+  - fastfetch
+  - htop
+  - hwinfo
+  - lm_sensors
+  - lynis
+  - nodejs
+  - nvtop
+  - pipx
+  - python3-pip
+  - p7zip
+  - p7zip-plugins
+#  - rawtherapee
+  - rkhunter
+  - shellcheck
+#  - solaar
+#  - sqlitebrowser
+  - steam
+  - testdisk
+  - tmux
+  - tuptime
+  - unhide
+  - unrar
+  - unzip
+  - uv
+  - vim
+  - VirtualBox
+
+dnf_packages_gnome:
+  - flatseal
+  - gnome-tweaks
+
+dnf_packages_kde:
+  - ktorrent
+  - plasma-sdk
+  - kde-gtk-config
+
+
+# Flatpak Apps
+flatpak_apps_common:
+  - com.bitwarden.desktop
+  - com.dec05eba.gpu_screen_recorder
+  - com.slack.Slack
+  - com.spotify.Client
+  - net.displaycal.DisplayCAL
+#  - org.ferdium.Ferdium
+  - org.zotero.Zotero
+  - us.zoom.Zoom
+
+flatpak_apps_gnome:
+  - com.github.unrud.VideoDownloader
+  - com.mattjakeman.ExtensionManager
+  - de.haeckerfelix.Fragments
+
+flatpak_apps_kde:
+  - com.markopejic.downloader
+
+fonts_packages:
+  - fira-code-fonts
+  - google-roboto-fonts
+
+# ASUS ROG Settings
+asus_copr_repo: "lukenukem/asus-linux"
+asus_packages:
+  - asusctl
+  - supergfxctl
+  - asusctl-rog-gui
+
+# Brave Browser Settings
+brave_gpg_key: "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"
+brave_repo_url: "https://brave-browser-rpm-release.s3.brave.com/x86_64/"
+brave_packages:
+  - brave-browser
+  - brave-origin
+
+# VS Code Settings
+vscode_gpg_key: "https://packages.microsoft.com/keys/microsoft.asc"
+vscode_repo_url: "https://packages.microsoft.com/yumrepos/vscode"
+
+# GitHub CLI Settings
+gh_gpg_key: "https://cli.github.com/packages/githubcli-archive-keyring.asc"
+gh_repo_url: "https://cli.github.com/packages/rpm"
+
+# Oh-My-Zsh settings
+omz_install_script_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+omz_theme_name: "kali-like-alt"
+omz_plugins:
+  - git
+# Nota: zsh-autosuggestions e zsh-syntax-highlighting são gerenciados internamente pelo tema kali-like-alt.
+
+
+# Antigravity CLI settings
+antigravity_install_script_url: "https://antigravity.google/cli/install.sh"
+
+# Claude Code settings
+claude_install_script_url: "https://claude.ai/install.sh"
+
+# Zsh Aliases
+zsh_aliases: |
+  alias zshconfig="nano ~/.zshrc"
+  alias ohmyzsh="nano ~/.oh-my-zsh"
+  alias lls="ls --color -lh --group-directories-first"
+  alias llsa="ls --color -lha --group-directories-first"
+  alias claudecli="cd ~/wks; clear; claude"
+  alias agycli="cd ~/wks; clear; agy"
+  alias antigravity="cd ~/wks/tools/antigravity; ./antigravity"
+  alias open-thevoid="udisksctl unlock -b /dev/nvme1n1p3; udisksctl mount -b /dev/mapper/luks-ad99f7e6-cf3a-4581-9c46-de99119b00d4"
+  alias close-thevoid="udisksctl unmount -b /dev/mapper/luks-ad99f7e6-cf3a-4581-9c46-de99119b00d4; udisksctl lock -b /dev/nvme1n1p3"
+  alias clean-cache="sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches"
+  alias nvidia-run="__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0"
+  alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y"
+
+# PTYxis Settings
+ptyxis_restore_window_size: "false"
+ptyxis_default_columns: 120
+ptyxis_default_rows: 35
+ptyxis_cursor_shape: "underline"
+ptyxis_cursor_blink_mode: "on"
+ptyxis_use_system_font: "false"
+ptyxis_font_name: "Fira Code 10"
+ptyxis_opacity: 0.95
+
+# Secrets (Moved to group_vars/secrets.yml)
+# Reference the variables there and encrypt the file with ansible-vault.

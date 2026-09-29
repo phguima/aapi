@@ -1,0 +1,36 @@
+---
+# Tasks for 'update' role
+
+# --- DNF optimization & RPM Fusion ---
+- name: DNF | Install dnf-plugins-core
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+  tags: [update]
+
+- name: System | Optimize DNF Configuration
+  ansible.builtin.lineinfile:
+    path: /etc/dnf/dnf.conf
+    line: "{{ item.key }}={{ item.value }}"
+    state: present
+  loop:
+    - { key: "max_parallel_downloads", value: "{{ dnf_max_parallel_downloads }}" }
+    - { key: "fastestmirror", value: "{{ dnf_fastestmirror }}" }
+  tags: [update]
+
+- name: System | Add RPM Fusion repositories
+  ansible.builtin.dnf:
+    name:
+      - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+      - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+    state: present
+    disable_gpg_check: yes
+  tags: [update]
+
+- name: System | Upgrade all packages and refresh dnf cache
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: yes
+  become: true
+  tags: [update]

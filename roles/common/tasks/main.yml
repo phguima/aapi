@@ -1,0 +1,141 @@
+---
+# Tasks for 'common' role
+
+- name: System | Set System Hostname
+  ansible.builtin.hostname:
+    name: "{{ system_hostname }}"
+  tags: [system, hostname]
+
+- name: System | Ensure workspace directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/wks"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+  when: user_name != 'root'
+  tags: [system, workspace]
+
+# --- Flatpak Applications ---
+- name: System | Enable Flathub Repository
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+  tags: [system, flatpak]
+
+# --- Kernel Maintenance ---
+- name: System | Kernel and Debug Maintenance
+  ansible.builtin.import_tasks: kernel_maintenance.yml
+  tags: [system, kernel, cleanup]
+
+# --- ZSH and Oh-My-Zsh ---
+- name: ZSH | Install ZSH, Git, and Curl
+  ansible.builtin.dnf:
+    name: [zsh, git, curl]
+    state: present
+  tags: [shell, omz, zsh, dnf]
+
+- name: ZSH | Ensure Oh-My-Zsh is installed for users
+  ansible.builtin.shell:
+    cmd: "curl -fsSL {{ omz_install_script_url }} | sh -s -- --unattended --keep-zshrc"
+    creates: "{{ item.home }}/.oh-my-zsh"
+  become_user: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Ensure .zshrc exists (copy template if missing)
+  ansible.builtin.copy:
+    src: "{{ item.home }}/.oh-my-zsh/templates/zshrc.zsh-template"
+    dest: "{{ item.home }}/.zshrc"
+    remote_src: yes
+    owner: "{{ item.name }}"
+    mode: '0644'
+    force: no
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Change default shell to ZSH
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    shell: /bin/zsh
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Copy custom theme for users
+  ansible.builtin.copy:
+    src: "{{ omz_theme_name }}.zsh-theme"
+    dest: "{{ item.home }}/.oh-my-zsh/themes/{{ omz_theme_name }}.zsh-theme"
+    owner: "{{ item.name }}"
+    mode: '0644'
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Set theme in .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ item.home }}/.zshrc"
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="{{ omz_theme_name }}"'
+    owner: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Set plugins in .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ item.home }}/.zshrc"
+    regexp: '^plugins=\('
+    line: 'plugins=({{ omz_plugins | join(" ") }})'
+    owner: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz]
+
+- name: ZSH | Add custom aliases to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ item.home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED ALIASES"
+    block: "{{ zsh_aliases }}"
+    owner: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz, aliases]
+
+# --- Antigravity CLI ---
+- name: Antigravity | Install Antigravity CLI for users
+  ansible.builtin.shell:
+    cmd: "curl -fsSL {{ antigravity_install_script_url }} | bash"
+    creates: "{{ item.home }}/.local/bin/agy"
+  become_user: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, antigravity]
+
+- name: ZSH | Add NVIDIA and API key placeholders to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ item.home }}/.zshrc"
+    marker: "# {mark} NVIDIA AND API CONFIGURATION"
+    insertafter: '^# export MANPATH="/usr/local/man:\$MANPATH"'
+    block: |
+      # Finer-Grained Control of GLX + OpenGL
+      #export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
+      #export __GLX_VENDOR_LIBRARY_NAME=nvidia
+      #export __NV_PRIME_RENDER_OFFLOAD=1
+
+      # API KEYS Configuration
+      {{ api_keys }}
+    owner: "{{ item.name }}"
+    mode: '0644'
+  loop: "{{ zsh_users }}"
+  tags: [shell, setup]
+
+# --- GRUB ---
+- name: System | Configure GRUB settings
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^{{ item.key }}='
+    line: '{{ item.key }}={{ item.value }}'
+    state: present
+  loop:
+    - { key: "GRUB_TIMEOUT", value: "{{ grub_timeout }}" }
+    - { key: "GRUB_TERMINAL_OUTPUT", value: '"{{ grub_terminal_output }}"' }
+    - { key: "GRUB_GFXPAYLOAD", value: '"{{ grub_gfxpayload }}"' }
+    - { key: "GRUB_GFXMODE", value: '"{{ grub_gfxmode }}"' }
+  notify: Regenerate GRUB
+  tags: [system, grub]
