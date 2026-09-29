@@ -53,21 +53,12 @@ if [ ! -f "group_vars/all/all.yml" ]; then
     exit 1
 fi
 
-# 4. Vault Check
-if [ -f "group_vars/all/secrets.yml" ]; then
-    if ! grep -q "\$ANSIBLE_VAULT" "group_vars/all/secrets.yml"; then
-        warn "Note: 'group_vars/all/secrets.yml' is NOT encrypted. Consider running:"
-        echo -e "      ${C_YELLOW}ansible-vault encrypt group_vars/all/secrets.yml${C_RESET}"
-    fi
-fi
-
-# 5. Final Instructions
+# 4. Final Instructions
 echo ""
 prompt "Bootstrap complete! You can now run the AFPI playbook using:"
-echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass${C_RESET}"
+echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K${C_RESET}"
 echo ""
 warn "Required flags:"
-echo -e "  -K               : Prompts for your sudo password."
-echo -e "  --ask-vault-pass : Prompts for your Ansible Vault password (if secrets are encrypted)."
+echo -e "  -K : Prompts for your sudo password."
 echo ""
 warn "Note: Some changes (like group membership and the cedilla fix) require logging out or rebooting."

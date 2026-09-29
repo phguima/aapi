@@ -48,10 +48,10 @@
   when: is_secure_boot
   tags: [software, virtualbox, secureboot]
   block:
-    - name: VirtualBox | Require mok_password from the vault
+    - name: VirtualBox | Require mok_password
       ansible.builtin.assert:
         that: mok_password is defined and mok_password | length > 0
-        fail_msg: "Secure Boot is enabled: define mok_password in group_vars/all/secrets.yml (vault)."
+        fail_msg: "Secure Boot is enabled: define mok_password in group_vars/all/all.yml."
         quiet: true
 
     - name: VirtualBox | Install signing tools
@@ -117,7 +117,7 @@
       - "=================================================================="
       - "Secure Boot: VirtualBox signing key queued for enrollment."
       - "REBOOT, choose 'Enroll MOK' in the blue MokManager screen and"
-      - "type the mok_password from the vault. VirtualBox modules load after that."
+      - "type the password '{{ mok_password }}'. VirtualBox modules load after that."
       - "=================================================================="
   when: virtualbox_mok_import is changed
   tags: [software, virtualbox, secureboot]

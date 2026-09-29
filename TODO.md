@@ -50,7 +50,7 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
 - [x] Aviso de reboot do `bootstrap.sh` generalizado.
 - [ ] 🟡 `README.md` — seção "NVIDIA Users", tags `nvidia`/`drivers`/`power`, troubleshooting de
       freeze NVIDIA/ASUS → fica para a reescrita do README (seção 9).
-- ⚠️ `mok_password` **fica** no vault: será usado pela assinatura do VirtualBox (seção 5).
+- [x] `mok_password` saiu do vault: agora é `alma-aapi` no `all.yml` (vault será removido).
 
 ## 4. Multimídia / aceleração de vídeo — feito
 
@@ -83,7 +83,7 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
         do `mokutil`; boot BIOS → false). Conferido num EFI real: `0` ↔ `mokutil` "disabled".
       - Repo `virtualbox` (`yum_repository`, `gpgcheck` + `repo_gpgcheck`; a chave é importada pelo
         dnf — `rpm_key` exigiria `gpg2`, que pode faltar).
-      - Com Secure Boot: exige `mok_password` (vault), instala `mokutil`/`openssl`, gera
+      - Com Secure Boot: exige `mok_password` (`all.yml`), instala `mokutil`/`openssl`, gera
         `/var/lib/shim-signed/mok/MOK.{der,priv}` (0700/0600, EKU codeSigning) e pede o registro
         com `mokutil --import` só se `--test-key` não disser "already" (senha via stdin, `no_log`).
         Tudo **antes** do pacote: o postinst da Oracle compila e assina, e o `vboxdrv.sh` refaz isso
@@ -131,6 +131,12 @@ Pontos só para ficar de olho:
 - [ ] 🟡 EL10 não tem servidor Xorg (só Xwayland). Não afeta nada hoje (Zoom continua via Xwayland).
 
 ## 9. Legado AFPI / Fedora (renomear)
+
+- [x] Vault removido do fluxo (2026-09-29): `mok_password` → `all.yml` (`alma-aapi`); `api_keys` virou
+      opcional (sem ele, a task do `.zshrc` é pulada e um bloco existente fica intocado);
+      `bootstrap.sh` sem checagem de vault nem `--ask-vault-pass`. Validado em container rodando o
+      `site.yml` sem `secrets.yml`. **Pendente do usuário:** apagar `group_vars/all/secrets.yml`.
+- [ ] 🟡 `README.md` — seção "Secrets Management (Ansible Vault)" e `--ask-vault-pass` nos comandos.
 
 - [ ] 🟡 `README.md` inteiro ainda é do AFPI / Fedora 41-44.
 - [ ] 🟡 `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project".

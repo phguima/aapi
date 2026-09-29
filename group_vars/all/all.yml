@@ -156,5 +156,11 @@ ptyxis_use_system_font: "false"
 ptyxis_font_name: "Fira Code 10"
 ptyxis_opacity: 0.95
 
-# Secrets (Moved to group_vars/secrets.yml)
-# Reference the variables there and encrypt the file with ansible-vault.
+# MOK enrollment password (only used when Secure Boot is on, see the VirtualBox tasks in 'apps').
+# One-time: typed once in the MokManager blue screen on the next boot. MokManager uses a US
+# keyboard layout, so stick to plain letters, digits and '-'.
+mok_password: "alma-aapi"
+
+# Optional: shell exports written to .zshrc, e.g.
+# api_keys: |
+#   export SERVICE_API_KEY="your_value_here"
