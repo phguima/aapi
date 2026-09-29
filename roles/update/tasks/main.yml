@@ -1,12 +1,26 @@
 ---
 # Tasks for 'update' role
 
-# --- DNF optimization & RPM Fusion ---
+# --- DNF optimization, CRB/EPEL & RPM Fusion ---
 - name: DNF | Install dnf-plugins-core
   ansible.builtin.dnf:
     name: dnf-plugins-core
     state: present
-  tags: [update]
+  tags: [update, repos]
+
+# CRB + EPEL must come before any other install: most 'apps' packages live in EPEL,
+# and RPM Fusion for EL depends on it.
+- name: Repos | Enable CRB repository
+  community.general.dnf_config_manager:
+    name: crb
+    state: enabled
+  tags: [update, repos]
+
+- name: Repos | Install EPEL repository
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+  tags: [update, repos]
 
 - name: System | Optimize DNF Configuration
   ansible.builtin.lineinfile:

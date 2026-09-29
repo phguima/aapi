@@ -12,7 +12,7 @@ Legenda: 🔴 quebra o playbook · 🟠 funciona errado / silenciosamente · �
 - [x] 🔴 **`bootstrap.sh`: `dnf install ansible` falha** — o pacote `ansible` não existe no EL10 base.
       Usar `ansible-core` (2.16, AppStream) + `ansible-galaxy collection install community.general`
       (já feito). Adicionar também `pciutils` (o `lspci` do `env_setup.yml` depende dele).
-- [ ] 🔴 **Habilitar CRB + EPEL antes de tudo** (role `update`): `dnf config-manager --set-enabled crb`
+- [x] 🔴 **Habilitar CRB + EPEL antes de tudo** (role `update`): `dnf config-manager --set-enabled crb`
       e `dnf install epel-release` (vem do repo `extras` do Alma). Metade dos pacotes do `apps`
       vem do EPEL, e o RPM Fusion EL depende dele.
 - [ ] 🔴 **URLs do RPM Fusion** (`update` e `nvidia`): trocar `.../free/fedora/...` e
