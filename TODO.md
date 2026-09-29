@@ -141,8 +141,8 @@ Pontos só para ficar de olho:
 - [ ] 🟡 `README.md` — tabela de variáveis do vault: tirar `mok_password` (agora no `all.yml`).
 
 - [ ] 🟡 `README.md` inteiro ainda é do AFPI / Fedora 41-44.
-- [ ] 🟡 `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project".
-- [ ] 🟡 `site.yml:24` — task `AFPI | Final Status`.
+- [x] `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project" → AAPI.
+- [x] `site.yml` — task `AFPI | Final Status` → `AAPI | Final Status` (banner realinhado).
 - [x] `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44" (removido na seção 4).
 - [x] `git init` + commit baseline (`497f521`).
 

@@ -19,12 +19,12 @@
     - { role: ai_tools, tags: [ai, gemini] }
 
   post_tasks:
-    - name: AFPI | Final Status
+    - name: AAPI | Final Status
       ansible.builtin.debug:
         msg: 
           - "==========================================================="
           - "  AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!                  "
-          - "  Your AlmaLinux workstation is now optimized and ready.      "
+          - "  Your AlmaLinux workstation is now optimized and ready.   "
           - "==========================================================="
       tags: [always]
 

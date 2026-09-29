@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AFPI (Ansible Fedora Post-Install) Bootstrap Script
-# This script prepares the system to run the AFPI roles.
+# AAPI (Ansible AlmaLinux Post-Install) Bootstrap Script
+# This script prepares an AlmaLinux 10 system to run the AAPI roles.
 
 set -e
 
@@ -49,7 +49,7 @@ ansible-galaxy collection install community.general
 
 # 3. Check for project structure
 if [ ! -f "group_vars/all/all.yml" ]; then
-    error "Structure 'group_vars/all/all.yml' not found. Please ensure you are in the root of the afpi project."
+    error "Structure 'group_vars/all/all.yml' not found. Please ensure you are in the root of the aapi project."
     exit 1
 fi
 
@@ -63,7 +63,7 @@ fi
 
 # 5. Final Instructions
 echo ""
-prompt "Bootstrap complete! You can now run the AFPI playbook using:"
+prompt "Bootstrap complete! You can now run the AAPI playbook using:"
 echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass${C_RESET}"
 echo ""
 warn "Required flags:"
