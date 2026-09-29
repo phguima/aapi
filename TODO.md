@@ -26,7 +26,7 @@ Legenda: 🔴 quebra o playbook · 🟠 funciona errado / silenciosamente · �
 EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks têm
 `failed_when: false`, então falham **em silêncio**.
 
-- [ ] 🟠 `kernel_maintenance.yml:25` — `dnf config-manager setopt "*debug*".enabled=0` é dnf5.
+- [x] 🟠 `kernel_maintenance.yml:25` — `dnf config-manager setopt "*debug*".enabled=0` é dnf5.
       No dnf4: `dnf config-manager --set-disabled '*debug*'` (ou simplesmente remover: no Alma
       os repos debug já vêm desabilitados).
 - [ ] 🟡 `hardware/main.yml:6` (comentado) — `dnf mark user` é dnf5; no dnf4 é `dnf mark install`.

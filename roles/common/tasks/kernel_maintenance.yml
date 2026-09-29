@@ -21,10 +21,18 @@
   when: installed_debug_kernels.stdout_lines | length > 0
   tags: [system, kernel]
 
-- name: Kernel | Disable debug repositories
-  ansible.builtin.shell: dnf config-manager setopt "*debug*".enabled=0
+- name: Kernel | Get enabled debug repositories
+  ansible.builtin.shell: dnf repolist --enabled -q | awk 'NR>1 {print $1}' | grep -i debug
+  register: enabled_debug_repos
   changed_when: false
   failed_when: false
+  tags: [system, kernel]
+
+- name: Kernel | Disable debug repositories
+  community.general.dnf_config_manager:
+    name: "{{ enabled_debug_repos.stdout_lines }}"
+    state: disabled
+  when: enabled_debug_repos.stdout_lines | length > 0
   tags: [system, kernel]
 
 - name: Kernel | Get list of old kernels
