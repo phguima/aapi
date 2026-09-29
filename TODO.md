@@ -62,7 +62,7 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
 - [x] Validado em container (`--tags repos,hardware`, Intel simulado): 1ª execução instalou
       `ffmpeg` 7.1 (trocou o `ffmpeg-free`), `libva-intel-driver`, `intel-media-driver`,
       `gstreamer1-plugins-bad-freeworld`, `-ugly` e `-libav`; 2ª execução `changed=0`.
-- [ ] 🟡 Opcional: `gstreamer1-libav` resolve via provides para `gstreamer1-plugin-libav`.
+- [x] `gstreamer1-libav` → `gstreamer1-plugin-libav` (nome real no EL10).
 
 ## 5. Pacotes do role `apps`
 
