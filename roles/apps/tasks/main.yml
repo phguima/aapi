@@ -72,7 +72,7 @@
         cmd: >-
           openssl req -nodes -new -x509 -newkey rsa:2048 -days 36500 -outform DER
           -addext extendedKeyUsage=codeSigning
-          -subj "/CN={{ system_hostname }} VirtualBox module signing/"
+          -subj "/CN={{ ansible_facts['hostname'] }} VirtualBox module signing/"
           -keyout {{ virtualbox_mok_dir }}/MOK.priv -out {{ virtualbox_mok_dir }}/MOK.der
         creates: "{{ virtualbox_mok_dir }}/MOK.priv"
 

@@ -3,9 +3,6 @@
 dnf_max_parallel_downloads: 15
 dnf_fastestmirror: "True"
 
-# System Settings
-system_hostname: "noir"
-
 # GRUB Settings
 grub_timeout: 5
 grub_gfxmode: "1920x1080x32,1280x720x32,auto"
@@ -141,8 +138,6 @@ zsh_aliases: |
   alias claudecli="cd ~/wks; clear; claude"
   alias agycli="cd ~/wks; clear; agy"
   alias antigravity="cd ~/wks/tools/antigravity; ./antigravity"
-  alias open-thevoid="udisksctl unlock -b /dev/nvme1n1p3; udisksctl mount -b /dev/mapper/luks-ad99f7e6-cf3a-4581-9c46-de99119b00d4"
-  alias close-thevoid="udisksctl unmount -b /dev/mapper/luks-ad99f7e6-cf3a-4581-9c46-de99119b00d4; udisksctl lock -b /dev/nvme1n1p3"
   alias clean-cache="sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches"
   alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y"
 

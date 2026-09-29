@@ -123,7 +123,7 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 
 ## 8. Resto do código — sem mudança necessária
 
-`common` (hostname, Flathub, ZSH/Oh-My-Zsh, aliases, Antigravity), `desktop` (Konsole, Ptyxis,
+`common` (Flathub, ZSH/Oh-My-Zsh, aliases, Antigravity), `desktop` (Konsole, Ptyxis,
 cedilha via `~/.XCompose`), `ai_tools` (Claude Code, pipx) — nada específico do Fedora.
 Pontos só para ficar de olho:
 
@@ -145,6 +145,14 @@ Pontos só para ficar de olho:
 - [x] `site.yml` — task `AFPI | Final Status` → `AAPI | Final Status` (banner realinhado).
 - [x] `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44" (removido na seção 4).
 - [x] `git init` + commit baseline (`497f521`).
+
+---
+
+## 10. Máquina do trabalho (2026-09-29)
+
+- [x] O AAPI será usado em máquina do trabalho: **não altera mais o hostname** (task e
+      `system_hostname` removidos; o CN da chave MOK do VirtualBox usa o hostname atual).
+- [x] Aliases pessoais `open-thevoid` / `close-thevoid` (LUKS local) removidos do `zsh_aliases`.
 
 ---
 

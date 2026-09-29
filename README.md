@@ -20,7 +20,7 @@ The project is organized to isolate responsibilities, ensuring idempotency and e
 
 *   **`update`**: DNF tuning, the **CRB** and **EPEL** repositories (enabled before anything else is installed), **RPM Fusion for EL**, and a full system upgrade.
 *   **`hardware`**: Intel VA-API drivers, full `ffmpeg` (replacing `ffmpeg-free`) and multimedia codecs.
-*   **`common`**: Hostname, Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
+*   **`common`**: Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
 *   **`apps`**: DNF and Flatpak applications, ClamAV, Brave, VS Code, GitHub CLI and **VirtualBox from Oracle's repository**, with Secure Boot-aware module signing (see below).
 *   **`desktop`**:
     *   **Fonts**: Fira Code from EPEL and **Roboto from its latest upstream release** (not packaged for EL10). It is replaced automatically whenever a new release is published.

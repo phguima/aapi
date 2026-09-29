@@ -1,11 +1,6 @@
 ---
 # Tasks for 'common' role
 
-- name: System | Set System Hostname
-  ansible.builtin.hostname:
-    name: "{{ system_hostname }}"
-  tags: [system, hostname]
-
 - name: System | Ensure workspace directory exists
   ansible.builtin.file:
     path: "{{ user_home }}/wks"
