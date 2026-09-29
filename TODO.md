@@ -48,12 +48,12 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado. Rem
 - [ ] 🔴 `roles/apps/main.yml:141-167` — remover as 3 tasks de override do `steam.desktop`
       (a de `update-desktop-database` só existe para elas).
 - [ ] 🟠 `tasks/env_setup.yml` — remover `is_nvidia`, `has_nvidia_driver` e o check de `nvidia-smi`
-      (linhas 43, 46, 65, 70-81). Manter a detecção de Intel/AMD.
+      (linhas 43, 46, 59, 64-75). Manter a detecção de Intel/AMD.
 - [ ] 🟠 `roles/common/main.yml:110-126` — tirar os `#export __NV_PRIME_*` do bloco do `.zshrc`
       e renomear o marker para `# {mark} API CONFIGURATION`. Atenção: mudar o marker faz o
       `blockinfile` criar um bloco novo e deixar o antigo órfão em `.zshrc` já existentes
       (irrelevante em instalação limpa).
-- [ ] 🟡 `group_vars/all/all.yml:176` — remover o alias `nvidia-run`.
+- [ ] 🟡 `group_vars/all/all.yml:169` — remover o alias `nvidia-run`.
 - [ ] 🟡 `bootstrap.sh:65` — aviso "NVIDIA driver install requires reboot".
 - [ ] 🟡 `README.md` — seção "NVIDIA Users" do fluxo em 3 passos, tags `nvidia`/`drivers`/`power`,
       troubleshooting de freeze NVIDIA/ASUS.
@@ -127,16 +127,16 @@ Pontos só para ficar de olho:
 - [ ] 🟡 `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project".
 - [ ] 🟡 `site.yml:24` — task `AFPI | Final Status`.
 - [ ] 🟡 `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44".
-- [ ] 🟡 Diretório não é repositório git — fazer `git init` antes de começar as mudanças.
+- [x] `git init` + commit baseline (`497f521`).
 
 ---
 
 ## Ordem sugerida
 
-1. `git init` + commit do estado atual (baseline do fork).
+1. ~~`git init` + commit do estado atual~~ ✅ feito.
 2. Seção 1 (bootstrap + CRB/EPEL/RPM Fusion) — sem isso nada roda.
 3. Seções 4 e 5 (listas de pacotes) — o grosso das falhas duras.
 4. Seção 3 (remoção de NVIDIA/Steam).
-5. Seções 6, 7, 2.
+5. Seções 7 e 2 (6 já feita).
 6. Seção 9 (renomear) + README.
 7. Rodar `ansible-playbook --check` num host/VM AlmaLinux 10.
