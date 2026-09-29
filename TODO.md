@@ -50,7 +50,7 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
 - [x] Aviso de reboot do `bootstrap.sh` generalizado.
 - [ ] 🟡 `README.md` — seção "NVIDIA Users", tags `nvidia`/`drivers`/`power`, troubleshooting de
       freeze NVIDIA/ASUS → fica para a reescrita do README (seção 9).
-- [x] `mok_password` saiu do vault: agora é `alma-aapi` no `all.yml` (vault será removido).
+- [x] `mok_password` saiu do vault: agora é `alma-aapi` no `all.yml` (o vault segue só com `api_keys`).
 
 ## 4. Multimídia / aceleração de vídeo — feito
 
@@ -132,11 +132,8 @@ Pontos só para ficar de olho:
 
 ## 9. Legado AFPI / Fedora (renomear)
 
-- [x] Vault removido do fluxo (2026-09-29): `mok_password` → `all.yml` (`alma-aapi`); `api_keys` virou
-      opcional (sem ele, a task do `.zshrc` é pulada e um bloco existente fica intocado);
-      `bootstrap.sh` sem checagem de vault nem `--ask-vault-pass`. Validado em container rodando o
-      `site.yml` sem `secrets.yml`. **Pendente do usuário:** apagar `group_vars/all/secrets.yml`.
-- [ ] 🟡 `README.md` — seção "Secrets Management (Ansible Vault)" e `--ask-vault-pass` nos comandos.
+- [x] `mok_password` saiu do vault para o `all.yml` (`alma-aapi`). O vault **continua** para `api_keys`.
+- [ ] 🟡 `README.md` — tabela de variáveis do vault: tirar `mok_password` (agora no `all.yml`).
 
 - [ ] 🟡 `README.md` inteiro ainda é do AFPI / Fedora 41-44.
 - [ ] 🟡 `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project".

@@ -161,6 +161,4 @@ ptyxis_opacity: 0.95
 # keyboard layout, so stick to plain letters, digits and '-'.
 mok_password: "alma-aapi"
 
-# Optional: shell exports written to .zshrc, e.g.
-# api_keys: |
-#   export SERVICE_API_KEY="your_value_here"
+# Secrets (api_keys) live in group_vars/all/secrets.yml, encrypted with ansible-vault.
