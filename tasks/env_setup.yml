@@ -44,13 +44,7 @@
     is_intel: false
     is_amd: false
     has_nvidia_driver: false
-    is_asus: false
   tags: [always]
-
-- name: Env Setup | Detect ASUS system
-  set_fact:
-    is_asus: "{{ (ansible_facts['system_vendor'] | default('') | lower is search('asus')) or (ansible_facts['board_vendor'] | default('') | lower is search('asus')) }}"
-  tags: [always, hardware, asus]
 
 - name: Env Setup | Detect GPU Type
   ansible.builtin.shell: lspci | grep -iE "vga|3d|display"

@@ -96,11 +96,12 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       `konsole` (EPEL, Plasma 6.6). `ptyxis` é o terminal padrão do EL10 (AppStream).
 - [ ] ✅ Brave, VS Code, GitHub CLI: repos próprios, sem dependência de versão do Fedora. OK.
 
-## 6. Hardware ASUS
+## 6. Hardware ASUS — removido
 
-- [ ] 🔴 COPR `lukenukem/asus-linux` só tem chroots **Fedora 43/44/45/rawhide** e openSUSE — nada
-      para EPEL/EL10. `community.general.copr` vai falhar. Opções: desabilitar o bloco ASUS no EL10,
-      compilar `asusctl`/`supergfxctl` do fonte (Rust), ou tentar o chroot Fedora (não recomendado).
+- [x] Bloco ASUS removido (decisão de 2026-09-29): tasks do role `hardware`, variáveis `asus_*`
+      do `all.yml` e o fact `is_asus` do `env_setup.yml`. Não havia pacote para EL10 de qualquer
+      forma (COPR `lukenukem/asus-linux` só tem chroots Fedora/openSUSE).
+- [ ] 🟡 `README.md` ainda cita ASUS (linhas 23, 39, 79-86, 93) — limpar junto com a seção 9.
 
 ## 7. GRUB
 

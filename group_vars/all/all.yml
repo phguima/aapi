@@ -125,13 +125,6 @@ fonts_packages:
   - fira-code-fonts
   - google-roboto-fonts
 
-# ASUS ROG Settings
-asus_copr_repo: "lukenukem/asus-linux"
-asus_packages:
-  - asusctl
-  - supergfxctl
-  - asusctl-rog-gui
-
 # Brave Browser Settings
 brave_gpg_key: "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"
 brave_repo_url: "https://brave-browser-rpm-release.s3.brave.com/x86_64/"
