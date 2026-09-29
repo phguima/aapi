@@ -18,7 +18,7 @@ Legenda: 🔴 quebra o playbook · 🟠 funciona errado / silenciosamente · �
 - [x] 🔴 **URLs do RPM Fusion** (`update`; a do `nvidia` sai junto com o role na seção 3): trocar `.../free/fedora/...` e
       `.../nonfree/fedora/...` por `.../free/el/...` e `.../nonfree/el/...`
       (`rpmfusion-{free,nonfree}-release-10.noarch.rpm`). Validado: ambos existem.
-- [ ] 🟠 Considerar assertar `ansible_facts['distribution'] == 'AlmaLinux'` e major `10` no
+- [x] 🟠 Considerar assertar `ansible_facts['distribution'] == 'AlmaLinux'` e major `10` no
       `env_setup.yml`, para falhar cedo se rodar no Fedora por engano.
 
 ## 2. dnf4 vs dnf5

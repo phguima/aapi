@@ -1,6 +1,17 @@
 ---
 # Environment discovery and setup for all roles
 
+- name: Env Setup | Ensure target is AlmaLinux 10
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'AlmaLinux'
+      - ansible_facts['distribution_major_version'] == '10'
+    fail_msg: >-
+      AAPI targets AlmaLinux 10 only; detected
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
+    quiet: true
+  tags: [always]
+
 - name: Env Setup | Get primary user data
   ansible.builtin.getent:
     database: passwd
