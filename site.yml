@@ -30,5 +30,7 @@
 
   handlers:
     - name: Regenerate GRUB
-      ansible.builtin.command: grub2-mkconfig -o /etc/grub2-efi.cfg
+      # Real config for both UEFI and BIOS on EL9+/EL10 (the ESP grub.cfg is a stub that loads it;
+      # /etc/grub2-efi.cfg is only a symlink to it, and missing on BIOS installs).
+      ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
 

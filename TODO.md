@@ -114,9 +114,10 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 
 ## 7. GRUB
 
-- [ ] 🟠 Handler `Regenerate GRUB` (`site.yml`) escreve em `/etc/grub2-efi.cfg`. No EL9+/EL10 o
-      `grub.cfg` real é `/boot/grub2/grub.cfg` (o da ESP é um stub que o carrega). Usar
-      `grub2-mkconfig -o /boot/grub2/grub.cfg`. (Vale conferir no host: `readlink -f /etc/grub2-efi.cfg`.)
+- [x] Handler `Regenerate GRUB` (`site.yml`) agora grava em `/boot/grub2/grub.cfg`.
+      Correção da auditoria: no EL10 `/etc/grub2-efi.cfg` já é symlink para esse arquivo, então em
+      UEFI o handler antigo funcionava; a troca deixa explícito e cobre boot BIOS (sem
+      `grub2-efi-x64` o symlink não existe e o antigo criaria um arquivo solto em `/etc`).
 - [ ] 🟡 O EL usa BLS + `grubby`; parâmetros de kernel devem ir via `grubby`, não `GRUB_CMDLINE_LINUX`
       (hoje o playbook não mexe no cmdline, então só fica o aviso).
 
