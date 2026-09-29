@@ -127,9 +127,13 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 cedilha via `~/.XCompose`), `ai_tools` (Claude Code, pipx) — nada específico do Fedora.
 Pontos só para ficar de olho:
 
-- [ ] 🟡 `pipx ... playwright install chromium`: o Playwright não suporta EL oficialmente; costuma
-      funcionar, mas `playwright install-deps` não funciona.
-- [ ] 🟡 EL10 não tem servidor Xorg (só Xwayland). Não afeta nada hoje (Zoom continua via Xwayland).
+- [x] `pipx ... playwright install chromium` — verificado em container EL10: o Chromium do Playwright
+      abre headless após instalar libs comuns de desktop (`nss`, `atk`, `at-spi2-*`, `cairo`, `pango`,
+      `alsa-lib`, `cups-libs`, `mesa-libgbm`, `libxkbcommon`, `libX*`), que o GNOME/KDE já trazem.
+      `playwright install-deps` (só Debian/Ubuntu) não é usado. Nada a mudar.
+- [x] EL10 sem servidor Xorg — verificado: `xorg-x11-server-Xwayland` (AppStream) vem com o GNOME;
+      Zoom segue via Xwayland e o cedilha via `~/.XCompose`. Só some a sessão "GNOME on Xorg",
+      que o playbook não usa. Nada a mudar.
 
 ## 9. Legado AFPI / Fedora (renomear)
 
