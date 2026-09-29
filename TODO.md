@@ -29,8 +29,8 @@ EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks
 - [x] 🟠 `kernel_maintenance.yml:25` — `dnf config-manager setopt "*debug*".enabled=0` é dnf5.
       No dnf4: `dnf config-manager --set-disabled '*debug*'` (ou simplesmente remover: no Alma
       os repos debug já vêm desabilitados).
-- [ ] 🟡 `hardware/main.yml:6` (comentado) — `dnf mark user` é dnf5; no dnf4 é `dnf mark install`.
-- [ ] 🟡 `kernel_maintenance.yml:32` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
+- [ ] 🟡 `hardware/main.yml:6` (comentado) — `dnf mark user` é dnf5; sai junto com o bloco NVIDIA (seção 3).
+- [ ] 🟡 `kernel_maintenance.yml:40` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
       mas a saída inclui epoch (`kernel-0:6.12.0-…`). O `grep -v $(uname -r)` continua funcionando;
       só validar num host real antes de confiar na remoção.
 
