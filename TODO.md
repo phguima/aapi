@@ -88,8 +88,9 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       - Tirar `VirtualBox` de `dnf_packages_common` e instalar `VirtualBox-7.2` numa task própria.
       - Pré-requisitos do build do `vboxdrv`: `kernel-devel`, `gcc`, `make`, `elfutils-libelf-devel`.
       - O pacote da Oracle já cria o grupo `vboxusers`; as tasks de grupo existentes continuam valendo.
-      - Com Secure Boot ligado, o `vboxdrv` precisa ser assinado (MOK) — sem akmods no fluxo da Oracle.
-        Decidir se o alvo usa Secure Boot antes de automatizar isso.
+      - Secure Boot: **desligado no alvo** (`mokutil --sb-state` → `SecureBoot disabled`, 2026-09-29).
+        Não automatizar assinatura MOK do `vboxdrv`. Se um dia ligar o Secure Boot, o módulo deixa
+        de carregar até ser assinado.
 - [ ] 🟠 `p7zip` / `p7zip-plugins` — resolvem via *provides* para `7zip-standalone` / `7zip`.
       Funciona, mas trocar pelos nomes reais.
 - [ ] 🟡 `clamav-update` resolve para `clamav-freshclam`; `vim` → `vim-enhanced`; `shellcheck` →
