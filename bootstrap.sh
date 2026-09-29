@@ -27,12 +27,20 @@ error() {
     echo -e "${C_RED}ERROR:${C_RESET} $1"
 }
 
-# 1. Install Ansible if not present
+# 1. Install Ansible if not present (EL10 ships only ansible-core; the full 'ansible' package does not exist)
 if ! command -v ansible &> /dev/null; then
-    prompt "Installing Ansible..."
-    sudo dnf install -y ansible
+    prompt "Installing Ansible (ansible-core)..."
+    sudo dnf install -y ansible-core
 else
     success "Ansible is already installed."
+fi
+
+# 1.1 Install pciutils (lspci is used for GPU detection in tasks/env_setup.yml)
+if ! command -v lspci &> /dev/null; then
+    prompt "Installing pciutils..."
+    sudo dnf install -y pciutils
+else
+    success "pciutils is already installed."
 fi
 
 # 2. Install required Ansible collections
