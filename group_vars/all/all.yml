@@ -16,18 +16,10 @@ grub_terminal_output: "gfxterm"
 intel_media_packages:
   - libva-intel-driver
   - intel-media-driver
-#  - libvdpau-va-gl // Retired into Fedora 44 release
-
-amd_multimedia_packages:
-  - mesa-va-drivers-freeworld
-#  - mesa-vdpau-drivers-freeworld
-  - libva-utils
-  - vdpauinfo
 
 # Multimedia Packages
 multimedia_packages:
   - "@multimedia"
-  - gstreamer1-plugins-bad-free-extras
   - gstreamer1-plugins-bad-freeworld
   - gstreamer1-plugins-ugly
   - gstreamer1-libav

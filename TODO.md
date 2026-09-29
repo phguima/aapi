@@ -52,17 +52,17 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
       freeze NVIDIA/ASUS → fica para a reescrita do README (seção 9).
 - ⚠️ `mok_password` **fica** no vault: será usado pela assinatura do VirtualBox (seção 5).
 
-## 4. Multimídia / aceleração de vídeo (`group_vars/all/all.yml`)
+## 4. Multimídia / aceleração de vídeo — feito
 
-- [ ] 🔴 `gstreamer1-plugins-bad-free-extras` — **não existe**. Remover.
-- [ ] 🔴 AMD: `mesa-va-drivers-freeworld`, `libva-utils`, `vdpauinfo` — **nenhum existe**, e o mesa
-      do EL10 não traz nenhum driver VA-API (`mesa-va-drivers` também ausente). Não há aceleração
-      VA-API para AMD via RPM no EL10. Remover a lista ou mover para "sem suporte".
-- [ ] 🟠 `@multimedia` existe (grupo "Multimedia"), mas é bem menor que o do Fedora. OK manter.
-- [ ] 🟠 Swap `ffmpeg-free` → `ffmpeg`: funciona (EPEL tem `ffmpeg-free`, RPM Fusion tem `ffmpeg` 7.1).
-      Manter o `allowerasing`.
-- [ ] ✅ `gstreamer1-plugins-bad-freeworld`, `gstreamer1-plugins-ugly`, `gstreamer1-libav`: OK.
-- [ ] ✅ Intel: `libva-intel-driver` (RPM Fusion free), `intel-media-driver` (RPM Fusion nonfree): OK.
+- [x] `gstreamer1-plugins-bad-free-extras` removido de `multimedia_packages`.
+- [x] AMD: `amd_multimedia_packages`, a task do role `hardware` e o fact `is_amd` removidos
+      (o mesa do EL10 não traz VA-API e não há build freeworld no EPEL/RPM Fusion EL).
+      Ficou um comentário no role explicando.
+- [x] Comentário `libvdpau-va-gl // Retired into Fedora 44` removido da lista Intel.
+- [x] Validado em container (`--tags repos,hardware`, Intel simulado): 1ª execução instalou
+      `ffmpeg` 7.1 (trocou o `ffmpeg-free`), `libva-intel-driver`, `intel-media-driver`,
+      `gstreamer1-plugins-bad-freeworld`, `-ugly` e `-libav`; 2ª execução `changed=0`.
+- [ ] 🟡 Opcional: `gstreamer1-libav` resolve via provides para `gstreamer1-plugin-libav`.
 
 ## 5. Pacotes do role `apps`
 
@@ -136,7 +136,7 @@ Pontos só para ficar de olho:
 - [ ] 🟡 `README.md` inteiro ainda é do AFPI / Fedora 41-44.
 - [ ] 🟡 `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project".
 - [ ] 🟡 `site.yml:24` — task `AFPI | Final Status`.
-- [ ] 🟡 `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44".
+- [x] `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44" (removido na seção 4).
 - [x] `git init` + commit baseline (`497f521`).
 
 ---

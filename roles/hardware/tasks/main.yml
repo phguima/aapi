@@ -9,13 +9,8 @@
   when: is_intel
   tags: [hardware, intel]
 
-- name: Hardware | Install AMD VA-API and VDPAU (Freeworld)
-  ansible.builtin.dnf:
-    name: "{{ amd_multimedia_packages }}"
-    state: present
-    allowerasing: true
-  when: is_amd
-  tags: [hardware, amd]
+# AMD: EL10's mesa ships no VA-API drivers and there is no freeworld build in
+# EPEL / RPM Fusion EL, so there is nothing to install for AMD video acceleration.
 
 # --- Multimedia Codecs & FFmpeg Swap ---
 - name: Codecs | Swap ffmpeg-free for full ffmpeg (RPM Fusion)
