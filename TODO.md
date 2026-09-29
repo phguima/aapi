@@ -48,8 +48,8 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
       remove o bloco antigo `NVIDIA AND API CONFIGURATION` para não ficar órfão.
       Validado em container: migra na 1ª execução, `changed=0` na 2ª.
 - [x] Aviso de reboot do `bootstrap.sh` generalizado.
-- [ ] 🟡 `README.md` — seção "NVIDIA Users", tags `nvidia`/`drivers`/`power`, troubleshooting de
-      freeze NVIDIA/ASUS → fica para a reescrita do README (seção 9).
+- [x] `README.md` — seção "NVIDIA Users", tags `nvidia`/`drivers`/`power`, troubleshooting de
+      freeze NVIDIA/ASUS → resolvido na reescrita do README.
 - [x] `mok_password` saiu do vault: agora é `alma-aapi` no `all.yml` (o vault segue só com `api_keys`).
 
 ## 4. Multimídia / aceleração de vídeo — feito
@@ -110,7 +110,7 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 - [x] Bloco ASUS removido (decisão de 2026-09-29): tasks do role `hardware`, variáveis `asus_*`
       do `all.yml` e o fact `is_asus` do `env_setup.yml`. Não havia pacote para EL10 de qualquer
       forma (COPR `lukenukem/asus-linux` só tem chroots Fedora/openSUSE).
-- [ ] 🟡 `README.md` ainda cita ASUS (linhas 23, 39, 79-86, 93) — limpar junto com a seção 9.
+- [x] `README.md` ainda cita ASUS (linhas 23, 39, 79-86, 93) — resolvido na reescrita do README.
 
 ## 7. GRUB
 
@@ -138,9 +138,9 @@ Pontos só para ficar de olho:
 ## 9. Legado AFPI / Fedora (renomear)
 
 - [x] `mok_password` saiu do vault para o `all.yml` (`alma-aapi`). O vault **continua** para `api_keys`.
-- [ ] 🟡 `README.md` — tabela de variáveis do vault: tirar `mok_password` (agora no `all.yml`).
+- [x] `README.md` — tabela de variáveis do vault: tirar `mok_password` (agora no `all.yml`).
 
-- [ ] 🟡 `README.md` inteiro ainda é do AFPI / Fedora 41-44.
+- [x] `README.md` reescrito para AlmaLinux 10 (sem NVIDIA/ASUS, vault só com `api_keys`, seção VirtualBox + Secure Boot, tabela de diferenças vs AFPI).
 - [x] `bootstrap.sh` — cabeçalho, mensagens e "root of the afpi project" → AAPI.
 - [x] `site.yml` — task `AFPI | Final Status` → `AAPI | Final Status` (banner realinhado).
 - [x] `group_vars/all/all.yml:19` — comentário "Retired into Fedora 44" (removido na seção 4).
@@ -155,5 +155,5 @@ Pontos só para ficar de olho:
 3. Seções 4 e 5 (listas de pacotes) — o grosso das falhas duras.
 4. ~~Seção 3 (remoção de NVIDIA/Steam)~~ ✅ feito.
 5. Seções 7 e 2 (6 já feita).
-6. Seção 9 (renomear) + README.
+6. ~~Seção 9 (renomear) + README~~ ✅ feito.
 7. Rodar `ansible-playbook --check` num host/VM AlmaLinux 10.

@@ -1,106 +1,115 @@
-# AFPI (Advanced Fedora Post-Install) - Ansible Role-Based
+# AAPI (Ansible AlmaLinux Post-Install) - Ansible Role-Based
 
 [![Project Status: Active](https://img.shields.io/badge/Project%20Status-Active-brightgreen.svg)](#-project-status)
 
-AFPI is a modular and intelligent system for Fedora Workstation post-installation (Validated on Fedora 41-44). It uses an architecture based on **Roles** and environment-aware variables (Jinja2), allowing your desktop customization and hardware optimizations to be applied consistently, making your workstation deployment fully automated and "hardware-aware".
+AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a port of AFPI (Advanced Fedora Post-Install) and keeps its architecture based on **Roles** and environment-aware variables (Jinja2), so desktop customization and hardware setup are applied consistently and the workstation deployment is fully automated.
 
 > [!WARNING]
 > **Disclaimer:** This project is tailored specifically for my personal environment, preferences, and hardware configuration. If you choose to use it, you must thoroughly review all roles, configurations, and variables, and customize them to fit your own specific requirements and hardware setup. Use it at your own risk.
 
 ## 📊 Project Status
 
-*   **Current Version:** 2.6.0
-*   **Last Update:** September 23, 2026
-*   **Latest Improvement:** Claude Code installed via the official native installer in the `ai_tools` role (new `claude` tag).
-*   **Stability:** Production-ready for Fedora 41, 42, 43, and 44.
+*   **Current Version:** 1.0.0 (port of AFPI 2.6.0)
+*   **Last Update:** September 29, 2026
+*   **Target:** AlmaLinux 10.x only (validated on 10.2). The playbook stops right away on any other distribution or major version.
+*   **Validation:** The parts changed in the port (repositories, OS guard, dnf 4 fixes, codecs, package lists, Roboto, VirtualBox with Secure Boot simulated) were validated in `almalinux:10` containers: the first run applies, the second reports no changes. A full run on a real machine or VM (EFI + Secure Boot) is still pending: see `TODO.md`.
 
 ## 🏗️ Architecture and Roles
 
 The project is organized to isolate responsibilities, ensuring idempotency and ease of maintenance:
 
-*   **`update`**: DNF plugins and optimization, RPM Fusion repositories, and a full system upgrade.
-*   **`nvidia`**: GPU detection and Secure Boot-ready driver installation (MOK key, signed akmods build, initramfs).
-*   **`hardware`**: Post-driver GPU setup (NVIDIA Vulkan, VA-API/NVENC and power management; Intel and AMD acceleration), multimedia codecs, and ASUS ROG support.
-*   **`common`**: Hostname, Flathub, kernel cleanup, GRUB tuning (timeout, resolution, regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
-*   **`desktop`**: 
-    *   **Universal Cedilla (ç) Fix**: Uses a `~/.XCompose` mapping (System) plus Flatpak overrides. Browsers, Bitwarden and Antigravity run on native Wayland with no extra fix; Zoom is the exception and always runs on XWayland (it hardcodes xcb), where the cedilla also works.
-    *   **Terminal**: Konsole and PTYxis profile management.
-
-*   **`apps`**: Complete suite via DNF and Flatpak, featuring GPU automation for Steam, **VirtualBox group management (vboxusers/vboxsf)**, and productivity tools (Brave, VS Code, GitHub CLI).
-*   **`ai_tools`**: Integration of the AI ecosystem (Claude Code via the official native installer, Gemini CLI and extensions) and specialized Python libraries via `pipx`.
+*   **`update`**: DNF tuning, the **CRB** and **EPEL** repositories (enabled before anything else is installed), **RPM Fusion for EL**, and a full system upgrade.
+*   **`hardware`**: Intel VA-API drivers, full `ffmpeg` (replacing `ffmpeg-free`) and multimedia codecs.
+*   **`common`**: Hostname, Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
+*   **`apps`**: DNF and Flatpak applications, ClamAV, Brave, VS Code, GitHub CLI and **VirtualBox from Oracle's repository**, with Secure Boot-aware module signing (see below).
+*   **`desktop`**:
+    *   **Fonts**: Fira Code from EPEL and **Roboto from its latest upstream release** (not packaged for EL10). It is replaced automatically whenever a new release is published.
+    *   **Universal Cedilla (ç) Fix**: Uses a `~/.XCompose` mapping plus Flatpak overrides. Browsers, Bitwarden and Antigravity run on native Wayland with no extra fix; Zoom always runs on Xwayland (it hardcodes xcb), where the cedilla also works.
+    *   **Terminal**: Konsole (KDE) and Ptyxis (GNOME) profile management.
+*   **`ai_tools`**: Claude Code via the official native installer and AI-related Python tools via `pipx` (markitdown, notebooklm-py with Playwright Chromium).
 
 ## 🏷️ Granular Control (Tags)
 
-AFPI features a comprehensive tagging system that allows you to run specific parts of the configuration:
+AAPI features a tagging system that allows you to run specific parts of the configuration:
 
 | Category | Primary Tags | Description |
 | :--- | :--- | :--- |
-| **Maintenance** | `update`, `cleanup`, `grub` | System upgrades, DNF optimization, kernel cleanup, and GRUB tuning. |
-| **Hardware** | `nvidia`, `drivers`, `power`, `asus` | GPU drivers, power management, and ASUS-specific tools. |
+| **Maintenance** | `update`, `repos`, `kernel`, `cleanup`, `grub` | Repositories (CRB, EPEL, RPM Fusion), upgrades, kernel cleanup, and GRUB tuning. |
+| **Hardware** | `hardware`, `intel`, `codecs`, `ffmpeg` | Intel video acceleration and multimedia codecs. |
 | **Shell** | `shell`, `zsh`, `omz`, `aliases` | ZSH installation, Oh-My-Zsh theme, and custom aliases. |
-| **Desktop** | `desktop`, `fonts`, `cedilla` | Terminal profiles, fonts, and the universal cedilla fix. |
-| **Software** | `apps`, `software`, `dnf`, `flatpak` | Application installation via DNF or Flatpak. |
-| **AI** | `ai`, `claude`, `gemini`, `extensions`, `python` | Claude Code, Gemini CLI, extensions, and AI-related Python libraries. |
+| **Desktop** | `desktop`, `fonts`, `roboto`, `cedilla` | Terminal profiles, fonts, and the universal cedilla fix. |
+| **Software** | `apps`, `software`, `dnf`, `flatpak`, `virtualbox` | Application installation via DNF, Flatpak, or vendor repositories. |
+| **AI** | `ai`, `claude`, `python` | Claude Code and AI-related Python tools. |
 
 ## 🔐 Secrets Management (Ansible Vault)
 
-AFPI uses **Ansible Vault** to protect sensitive information. Since the provided `group_vars/all/secrets.yml` is encrypted, you must create your own if you fork this project.
+AAPI uses **Ansible Vault** for API keys. Since the provided `group_vars/all/secrets.yml` is encrypted, you must create your own if you fork this project.
 
 ### Required Variables in `secrets.yml`
 | Variable | Description | Example / Usage |
 | :--- | :--- | :--- |
 | `api_keys` | Block of environment exports for your shell | `export SERVICE_API_KEY="your_value_here"` |
-| `mok_password` | Password for NVIDIA MOK enrollment | Used to sign drivers for Secure Boot |
+
+The MOK enrollment password (`mok_password`) is **not** a secret and lives in `group_vars/all/all.yml`: see the Secure Boot section below.
 
 ## 🚀 Getting Started
 
 ### 1. Bootstrap the System
-Prepare the Ansible environment:
+Prepare the Ansible environment (installs `ansible-core`, `pciutils` and the `community.general` collection):
 ```bash
 ./bootstrap.sh
 ```
 
 ### 2. Run the Playbook
-Apply the full configuration (the provided `ansible.cfg` is optimized for faster deployment):
+Apply the full configuration:
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass
 ```
 
-> [!IMPORTANT]
-> **NVIDIA Users:** To ensure compatibility of proprietary drivers with the latest kernel and Secure Boot signing, follow this specific 3-step workflow using tags:
-> 1. **Update System:** `ansible-playbook -i inventory.ini site.yml --tags update -K --ask-vault-pass`
-> 2. **Reboot** to load the new kernel.
-> 3. **Install NVIDIA Drivers:** `ansible-playbook -i inventory.ini site.yml --tags nvidia -K --ask-vault-pass`
-> 4. **Reboot** to enroll the MOK key (if Secure Boot is enabled).
-> 5. **Finish Setup:** `ansible-playbook -i inventory.ini site.yml --skip-tags update,nvidia -K --ask-vault-pass`
+Or only a part of it, for example just the repositories:
+```bash
+ansible-playbook -i inventory.ini site.yml --tags repos -K --ask-vault-pass
+```
 
-## ⚠️ Troubleshooting: System Freezes
+With `--check`, the Roboto step only reports which version would be installed (the full playbook has not been validated in check mode yet).
 
-Some laptops (especially those with hybrid graphics or specific ASUS/NVIDIA combinations) may experience a system freeze during the `hardware` role.
+## 🛡️ VirtualBox and Secure Boot
 
-1.  **Hard Reboot** the machine (hold power button).
-2.  Run the playbook skipping the power management and hardware-specific tags to isolate the issue:
-    ```bash
-    ansible-playbook site.yml --skip-tags power,asus --ask-vault-pass
-    ```
-3.  If the playbook finishes successfully with these skips, the conflict is likely in the NVIDIA Deep Power Management settings or the `supergfxd` service.
+VirtualBox is not packaged for EL10, so AAPI installs `VirtualBox-7.2` from Oracle's official repository. Its kernel modules are built locally, which matters when Secure Boot is on:
 
-## 🛠️ AFPI Differentiators
+*   **Secure Boot off:** VirtualBox is just installed.
+*   **Secure Boot on:** before installing the package, AAPI creates a signing key pair in `/var/lib/shim-signed/mok/` and queues it for enrollment with `mokutil --import`. Oracle's `vboxdrv.sh` then signs the modules with that key, both at install time and whenever it rebuilds them at boot for a new kernel.
+
+After a run that queued the key, **reboot**, choose **Enroll MOK** in the blue MokManager screen, and type the `mok_password` from `group_vars/all/all.yml` (default: `alma-aapi`). This confirmation is manual by design.
+
+> [!NOTE]
+> MokManager uses a US keyboard layout. Keep `mok_password` to plain letters, digits and `-`, otherwise what you type on an ABNT2 (or other) keyboard will not match.
+
+Check the Secure Boot state with `mokutil --sb-state`.
+
+## 🛠️ AAPI Differentiators
 
 ### Intelligent Environment Discovery
-AFPI doesn't just run blindly. The `env_setup.yml` core task dynamically discovers your machine's profile:
-*   **Hardware Detection:** Identifies NVIDIA, Intel, or AMD GPUs and applies specific acceleration packages.
-*   **Vendor Awareness:** Specifically detects ASUS ROG/TUF systems to enable `asusctl` and `supergfxctl` tools.
-*   **Desktop Agnostic:** Automatically identifies if you are running GNOME or KDE Plasma and applies environment-specific terminal profiles (PTYxis or Konsole) and apps.
+AAPI doesn't just run blindly. The `env_setup.yml` core task dynamically discovers your machine's profile:
+*   **Distribution Guard:** Fails fast unless the target is AlmaLinux 10.x.
+*   **Hardware Detection:** Identifies Intel GPUs and applies the matching video acceleration packages.
+*   **Secure Boot Detection:** Reads the `SecureBoot` EFI variable directly (works before `mokutil` is installed; legacy BIOS boots count as disabled).
+*   **Desktop Agnostic:** Detects GNOME or KDE Plasma (via EPEL) and applies environment-specific terminal profiles (Ptyxis or Konsole) and apps.
 
 ### Zero-Config Shell
 ZSH configuration has been simplified. The `kali-like-alt` theme manages its own dependencies (syntax highlighting and autosuggestions), reducing playbook complexity and execution time.
 
-### Robust NVIDIA & Secure Boot Automation
-The `nvidia` role implements an advanced MOK (Machine Owner Key) management system entirely via Ansible:
-*   **Intelligent Detection:** Detects existing keys, pending enrollments, and kernel status to avoid redundant operations.
-*   **Integrated Signing:** Automatically triggers `akmods` and `dracut` to ensure modules are signed and included in the initramfs immediately.
-*   **Secure Pipe:** Uses high-reliability password injection for `mokutil` via Vault secrets.
+### Always-Current Roboto
+Roboto is fetched from the latest `googlefonts/roboto-3-classic` release, verified against the SHA-256 digest published by GitHub, and replaces the previous installation only when the version changes. If GitHub is unreachable, the playbook warns and keeps what is already installed.
 
-### Universal Cedilla (ç) Fix
-Uses a `~/.XCompose` mapping (System) plus Flatpak overrides. Browsers, Bitwarden and Antigravity run on native Wayland with no extra fix; Zoom is the exception and always runs on XWayland (it hardcodes xcb), where the cedilla also works.
+## 🔄 Differences from AFPI (Fedora)
+
+| Area | AFPI (Fedora) | AAPI (AlmaLinux 10) |
+| :--- | :--- | :--- |
+| Package manager | dnf5 | dnf 4 (commands adapted) |
+| Extra repositories | RPM Fusion | CRB + EPEL + RPM Fusion for EL |
+| NVIDIA / Steam / ASUS ROG | Supported | Removed (out of scope; Steam needs i686, which EL10 does not ship; no `asusctl` builds for EL10) |
+| AMD video acceleration | `mesa-va-drivers-freeworld` | Not available on EL10 |
+| VirtualBox | RPM Fusion | Oracle repository, Secure Boot-aware signing |
+| Roboto font | `google-roboto-fonts` RPM | Latest upstream release |
+| `argyllcms`, `chkrootkit`, `unhide` | Installed | Dropped (not available on EL10) |
