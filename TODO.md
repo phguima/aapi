@@ -71,7 +71,13 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 - [ ] 🔴 `argyllcms` — ausente (afeta DisplayCAL, que é Flatpak e já traz o próprio Argyll; pode só remover).
 - [ ] 🔴 `chkrootkit` — ausente. Remover (o `rkhunter` e o `lynis` existem).
 - [ ] 🔴 `unhide` — ausente. Remover.
-- [ ] 🔴 `google-roboto-fonts` — ausente (só `google-roboto-slab-fonts`). Trocar ou baixar via Google Fonts.
+- [x] 🔴 `google-roboto-fonts` — ausente no EL10 (o `google-roboto-slab-fonts` é outra família).
+      Agora o role `desktop` instala o **último release** de `googlefonts/roboto-3-classic`
+      (TTFs estáticos hinted em `/usr/local/share/fonts/roboto`), conferindo o SHA-256 que a API do
+      GitHub publica, e substitui a instalação inteira quando sai versão nova (`.version`). Sem
+      acesso ao GitHub, só avisa e mantém o que houver. Validado em container: instalação limpa,
+      re-run sem mudança, upgrade de versão antiga (arquivos velhos removidos), GitHub fora,
+      `--check`, e leitura por usuário não-root.
 - [ ] 🔴 **`VirtualBox`** — ausente nos repos da distro. **Decisão (2026-09-29): manter VirtualBox via
       repo oficial da Oracle** (build el10 validado: `VirtualBox-7.2`).
       - Adicionar `yum_repository` (`https://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch`)

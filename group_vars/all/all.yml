@@ -90,7 +90,10 @@ flatpak_apps_kde:
 
 fonts_packages:
   - fira-code-fonts
-  - google-roboto-fonts
+
+# Roboto is not packaged for EL10: installed from the latest upstream release
+roboto_release_api: "https://api.github.com/repos/googlefonts/roboto-3-classic/releases/latest"
+roboto_font_dir: "/usr/local/share/fonts/roboto"
 
 # Brave Browser Settings
 brave_gpg_key: "https://brave-browser-rpm-release.s3.brave.com/brave-core.asc"

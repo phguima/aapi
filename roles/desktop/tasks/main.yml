@@ -8,6 +8,120 @@
     state: present
   tags: [desktop, fonts]
 
+# --- Roboto (latest upstream release) ---
+# Replaced wholesale whenever the installed version (.version) differs from the latest
+# GitHub release. If GitHub is unreachable, keep whatever is installed and move on.
+- name: Fonts | Query latest Roboto release
+  ansible.builtin.uri:
+    url: "{{ roboto_release_api }}"
+    headers:
+      Accept: application/vnd.github+json
+    return_content: yes
+  register: roboto_release
+  failed_when: false
+  check_mode: false
+  tags: [desktop, fonts, roboto]
+
+- name: Fonts | Warn when the Roboto release could not be queried
+  ansible.builtin.debug:
+    msg: "Could not query {{ roboto_release_api }} (status {{ roboto_release.status | default('n/a') }}); keeping the installed Roboto, if any."
+  when: roboto_release.status | default(0) != 200
+  tags: [desktop, fonts, roboto]
+
+- name: Fonts | Read installed Roboto version
+  ansible.builtin.slurp:
+    src: "{{ roboto_font_dir }}/.version"
+  register: roboto_installed
+  failed_when: false
+  tags: [desktop, fonts, roboto]
+
+# --check cannot download/extract into a temp dir that is never created, so it only reports.
+- name: Fonts | Report pending Roboto install or update (check mode)
+  ansible.builtin.debug:
+    msg: "Would install Roboto {{ roboto_release.json.tag_name }} (installed: {{ roboto_installed.content | default('') | b64decode | trim | default('none', true) }})"
+  changed_when: true
+  when:
+    - ansible_check_mode
+    - roboto_release.status | default(0) == 200
+    - (roboto_installed.content | default('') | b64decode | trim) != roboto_release.json.tag_name
+  tags: [desktop, fonts, roboto]
+
+- name: Fonts | Install or update Roboto
+  when:
+    - not ansible_check_mode
+    - roboto_release.status | default(0) == 200
+    - (roboto_installed.content | default('') | b64decode | trim) != roboto_release.json.tag_name
+  vars:
+    roboto_asset: "{{ roboto_release.json.assets | selectattr('name', 'match', '.*\\.zip$') | first }}"
+  tags: [desktop, fonts, roboto]
+  block:
+    - name: Fonts | Ensure unzip and fontconfig are installed
+      ansible.builtin.dnf:
+        name: [unzip, fontconfig]
+        state: present
+
+    - name: Fonts | Create temporary download directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: roboto
+      register: roboto_tmp
+
+    - name: Fonts | Download Roboto {{ roboto_release.json.tag_name }}
+      ansible.builtin.get_url:
+        url: "{{ roboto_asset.browser_download_url }}"
+        dest: "{{ roboto_tmp.path }}/roboto.zip"
+        checksum: "{{ roboto_asset.digest | default(omit, true) }}"
+        mode: '0644'
+
+    - name: Fonts | Remove previous Roboto installation
+      ansible.builtin.file:
+        path: "{{ roboto_font_dir }}"
+        state: absent
+
+    # Static hinted TTFs only (what distro packages ship); adding the variable
+    # font as well would show duplicate families in font pickers.
+    - name: Fonts | Extract static hinted Roboto fonts
+      ansible.builtin.unarchive:
+        src: "{{ roboto_tmp.path }}/roboto.zip"
+        dest: "{{ roboto_tmp.path }}"
+        remote_src: yes
+        include: ["hinted/static/*.ttf"]
+
+    - name: Fonts | Install Roboto font files
+      ansible.builtin.copy:
+        src: "{{ roboto_tmp.path }}/hinted/static/"
+        dest: "{{ roboto_font_dir }}/"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0644'
+
+    # After the copy: 'mode' above also hits the destination directory itself.
+    - name: Fonts | Set Roboto font directory permissions
+      ansible.builtin.file:
+        path: "{{ roboto_font_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Fonts | Record installed Roboto version
+      ansible.builtin.copy:
+        content: "{{ roboto_release.json.tag_name }}\n"
+        dest: "{{ roboto_font_dir }}/.version"
+        mode: '0644'
+
+    - name: Fonts | Rebuild font cache
+      ansible.builtin.command: fc-cache -f {{ roboto_font_dir }}
+      changed_when: true
+
+  always:
+    - name: Fonts | Remove temporary download directory
+      ansible.builtin.file:
+        path: "{{ roboto_tmp.path }}"
+        state: absent
+      when: roboto_tmp.path is defined
+
 # --- KDE Specific Configuration ---
 - name: KDE | Ensure konsole directory exists
   ansible.builtin.file:
