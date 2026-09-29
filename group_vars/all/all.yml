@@ -31,7 +31,7 @@ dnf_packages_common:
 #  - btrfs-assistant
   - chromium
   - clamav
-  - clamav-update
+  - clamav-freshclam
 #  - darktable
   - fastfetch
   - htop
@@ -44,7 +44,7 @@ dnf_packages_common:
   - python3-pip
 #  - rawtherapee
   - rkhunter
-  - shellcheck
+  - ShellCheck
 #  - solaar
 #  - sqlitebrowser
   - testdisk
@@ -53,7 +53,7 @@ dnf_packages_common:
   - unrar
   - unzip
   - uv
-  - vim
+  - vim-enhanced
   - VirtualBox
 
 dnf_packages_gnome:

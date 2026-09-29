@@ -103,8 +103,8 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
         - Teste do ramo com Secure Boot só em VM com firmware OVMF Secure Boot, não em container.
 - [x] 🟠 `p7zip` / `p7zip-plugins` → `7zip-standalone` (`7za`) / `7zip` (`7z`).
       Validado: toda a `dnf_packages_common` (menos VirtualBox) instala num container EL10.
-- [ ] 🟡 `clamav-update` resolve para `clamav-freshclam`; `vim` → `vim-enhanced`; `shellcheck` →
-      `ShellCheck`. Funcionam via provides; opcional renomear.
+- [x] 🟡 `clamav-update` → `clamav-freshclam`, `vim` → `vim-enhanced`, `shellcheck` → `ShellCheck`
+      (nomes reais no EL10; o `clamav-freshclam.service` usado no role `apps` vem desse pacote).
 - [ ] ✅ OK: `chromium`, `clamav`, `fastfetch`, `htop`, `hwinfo`, `lm_sensors`, `lynis`, `nodejs` (22),
       `nvtop`, `pipx`, `python3-pip`, `rkhunter`, `testdisk`, `tmux`, `tuptime`, `unrar`, `unzip`,
       `uv`, `fira-code-fonts`.
