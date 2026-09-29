@@ -81,10 +81,15 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 - [ ] 🔴 `chkrootkit` — ausente. Remover (o `rkhunter` e o `lynis` existem).
 - [ ] 🔴 `unhide` — ausente. Remover.
 - [ ] 🔴 `google-roboto-fonts` — ausente (só `google-roboto-slab-fonts`). Trocar ou baixar via Google Fonts.
-- [ ] 🔴 **`VirtualBox`** — ausente nos repos da distro. O repo oficial da Oracle tem build el10
-      (`VirtualBox-7.2`, validado). Adicionar `yum_repository` + chave `oracle_vbox_2016.asc` e
-      instalar `VirtualBox-7.2`. Atenção: o `vboxdrv` é compilado localmente → com Secure Boot
-      ligado, precisa assinar o módulo (MOK). Alternativa nativa: KVM/libvirt + virt-manager.
+- [ ] 🔴 **`VirtualBox`** — ausente nos repos da distro. **Decisão (2026-09-29): manter VirtualBox via
+      repo oficial da Oracle** (build el10 validado: `VirtualBox-7.2`).
+      - Adicionar `yum_repository` (`https://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch`)
+        + chave `https://www.virtualbox.org/download/oracle_vbox_2016.asc`.
+      - Tirar `VirtualBox` de `dnf_packages_common` e instalar `VirtualBox-7.2` numa task própria.
+      - Pré-requisitos do build do `vboxdrv`: `kernel-devel`, `gcc`, `make`, `elfutils-libelf-devel`.
+      - O pacote da Oracle já cria o grupo `vboxusers`; as tasks de grupo existentes continuam valendo.
+      - Com Secure Boot ligado, o `vboxdrv` precisa ser assinado (MOK) — sem akmods no fluxo da Oracle.
+        Decidir se o alvo usa Secure Boot antes de automatizar isso.
 - [ ] 🟠 `p7zip` / `p7zip-plugins` — resolvem via *provides* para `7zip-standalone` / `7zip`.
       Funciona, mas trocar pelos nomes reais.
 - [ ] 🟡 `clamav-update` resolve para `clamav-freshclam`; `vim` → `vim-enhanced`; `shellcheck` →
