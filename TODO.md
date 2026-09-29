@@ -48,7 +48,7 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado. Rem
 - [ ] 🔴 `roles/apps/main.yml:141-167` — remover as 3 tasks de override do `steam.desktop`
       (a de `update-desktop-database` só existe para elas).
 - [ ] 🟠 `tasks/env_setup.yml` — remover `is_nvidia`, `has_nvidia_driver` e o check de `nvidia-smi`
-      (linhas 43, 46, 59, 64-75). Manter a detecção de Intel/AMD.
+      (linhas 54, 57, 70, 75-86). Manter a detecção de Intel/AMD.
 - [ ] 🟠 `roles/common/main.yml:110-126` — tirar os `#export __NV_PRIME_*` do bloco do `.zshrc`
       e renomear o marker para `# {mark} API CONFIGURATION`. Atenção: mudar o marker faz o
       `blockinfile` criar um bloco novo e deixar o antigo órfão em `.zshrc` já existentes
