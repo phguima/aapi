@@ -29,7 +29,99 @@
     state: started
   tags: [software, clamav]
 
-# --- VirtualBox Configuration ---
+# --- VirtualBox (Oracle repository) ---
+- name: VirtualBox | Add Oracle VirtualBox repository
+  ansible.builtin.yum_repository:
+    name: virtualbox
+    description: Oracle VirtualBox
+    baseurl: "{{ virtualbox_repo_url }}"
+    enabled: yes
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: "{{ virtualbox_gpg_key }}"
+  tags: [software, virtualbox]
+
+# Secure Boot: the key pair must exist BEFORE the package install, because the RPM's
+# post-install (and, on every boot with a new kernel, vboxdrv.sh) builds the modules and
+# signs them with it. The enrollment itself is confirmed by hand in MokManager on reboot.
+- name: VirtualBox | Prepare module signing key (Secure Boot)
+  when: is_secure_boot
+  tags: [software, virtualbox, secureboot]
+  block:
+    - name: VirtualBox | Require mok_password from the vault
+      ansible.builtin.assert:
+        that: mok_password is defined and mok_password | length > 0
+        fail_msg: "Secure Boot is enabled: define mok_password in group_vars/all/secrets.yml (vault)."
+        quiet: true
+
+    - name: VirtualBox | Install signing tools
+      ansible.builtin.dnf:
+        name: [mokutil, openssl]
+        state: present
+
+    - name: VirtualBox | Create MOK key directory
+      ansible.builtin.file:
+        path: "{{ virtualbox_mok_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: VirtualBox | Generate MOK signing key pair
+      ansible.builtin.command:
+        cmd: >-
+          openssl req -nodes -new -x509 -newkey rsa:2048 -days 36500 -outform DER
+          -addext extendedKeyUsage=codeSigning
+          -subj "/CN={{ system_hostname }} VirtualBox module signing/"
+          -keyout {{ virtualbox_mok_dir }}/MOK.priv -out {{ virtualbox_mok_dir }}/MOK.der
+        creates: "{{ virtualbox_mok_dir }}/MOK.priv"
+
+    - name: VirtualBox | Restrict private key permissions
+      ansible.builtin.file:
+        path: "{{ virtualbox_mok_dir }}/MOK.priv"
+        owner: root
+        group: root
+        mode: '0600'
+
+    # "is already enrolled" / "is already in the enrollment request" -> nothing to do
+    - name: VirtualBox | Check MOK enrollment state
+      ansible.builtin.command: mokutil --test-key {{ virtualbox_mok_dir }}/MOK.der
+      register: virtualbox_mok_state
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: VirtualBox | Request MOK enrollment
+      ansible.builtin.command:
+        cmd: mokutil --import {{ virtualbox_mok_dir }}/MOK.der
+        stdin: "{{ mok_password }}\n{{ mok_password }}"
+      when: "'already' not in virtualbox_mok_state.stdout"
+      register: virtualbox_mok_import
+      no_log: true
+
+- name: VirtualBox | Install kernel module build dependencies
+  ansible.builtin.dnf:
+    name: "{{ virtualbox_build_packages }}"
+    state: present
+  tags: [software, virtualbox]
+
+- name: VirtualBox | Install VirtualBox
+  ansible.builtin.dnf:
+    name: "{{ virtualbox_package }}"
+    state: present
+  tags: [software, virtualbox]
+
+- name: VirtualBox | Remind to enroll the MOK key on next boot
+  ansible.builtin.debug:
+    msg:
+      - "=================================================================="
+      - "Secure Boot: VirtualBox signing key queued for enrollment."
+      - "REBOOT, choose 'Enroll MOK' in the blue MokManager screen and"
+      - "type the mok_password from the vault. VirtualBox modules load after that."
+      - "=================================================================="
+  when: virtualbox_mok_import is changed
+  tags: [software, virtualbox, secureboot]
+
 - name: VirtualBox | Ensure vboxusers and vboxsf groups exist
   ansible.builtin.group:
     name: "{{ item }}"

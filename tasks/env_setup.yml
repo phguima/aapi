@@ -54,6 +54,21 @@
     is_intel: false
   tags: [always]
 
+# Reads the SecureBoot EFI variable directly (5th byte: 1 = enabled), so it works before
+# mokutil is installed; legacy-BIOS boots have no efivars and report false.
+- name: Env Setup | Read Secure Boot state
+  ansible.builtin.command: od -An -tu1 -j4 -N1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c
+  register: secure_boot_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags: [always]
+
+- name: Env Setup | Set Secure Boot fact
+  set_fact:
+    is_secure_boot: "{{ secure_boot_raw.rc == 0 and (secure_boot_raw.stdout | trim) == '1' }}"
+  tags: [always]
+
 - name: Env Setup | Detect GPU Type
   ansible.builtin.shell: lspci | grep -iE "vga|3d|display"
   register: gpu_info_raw

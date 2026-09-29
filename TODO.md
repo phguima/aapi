@@ -78,29 +78,22 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       acesso ao GitHub, só avisa e mantém o que houver. Validado em container: instalação limpa,
       re-run sem mudança, upgrade de versão antiga (arquivos velhos removidos), GitHub fora,
       `--check`, e leitura por usuário não-root.
-- [ ] 🔴 **`VirtualBox`** — ausente nos repos da distro. **Decisão (2026-09-29): manter VirtualBox via
-      repo oficial da Oracle** (build el10 validado: `VirtualBox-7.2`).
-      - Adicionar `yum_repository` (`https://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch`)
-        + chave `https://www.virtualbox.org/download/oracle_vbox_2016.asc`.
-      - Tirar `VirtualBox` de `dnf_packages_common` e instalar `VirtualBox-7.2` numa task própria.
-      - Pré-requisitos do build do `vboxdrv`: `kernel-devel`, `gcc`, `make`, `elfutils-libelf-devel`.
-      - O pacote da Oracle já cria o grupo `vboxusers`; as tasks de grupo existentes continuam valendo.
-      - Secure Boot: hoje **desligado no alvo** (`SecureBoot disabled`, 2026-09-29), mas o playbook
-        deve detectar e se adaptar. Validado lendo o `vboxdrv.sh` do pacote `VirtualBox-7.2` el10:
-        o script da Oracle **já assina sozinho** (em qualquer distro, não só Debian) se existir a
-        chave em `/var/lib/shim-signed/mok/MOK.{der,priv}` e o `sign-file` do `kernel-devel`.
-        E no boot, se não houver módulo para o kernel atual, ele recompila e reassina — então
-        updates de kernel ficam cobertos sem hook extra. Plano:
-        1. `env_setup.yml`: fact `is_secure_boot` a partir de `mokutil --sb-state`
-           (`SecureBoot enabled` → true; qualquer outra saída → false).
-        2. Se `is_secure_boot`, **antes** de instalar o VirtualBox: criar `/var/lib/shim-signed/mok`
-           (0700), gerar a chave com `openssl req ... -addext extendedKeyUsage=codeSigning`
-           (`creates:` MOK.priv) e, se `mokutil --test-key` disser que não está registrada nem
-           pendente, `mokutil --import` com `mok_password` do vault.
-        3. Instalar `VirtualBox-7.2` — o postinst compila e assina.
-        4. Avisar: reboot + registrar a chave na tela azul do MokManager (passo manual inevitável).
-        - Consequência: **manter `mok_password` no vault** (a seção 3 previa remover).
-        - Teste do ramo com Secure Boot só em VM com firmware OVMF Secure Boot, não em container.
+- [x] 🔴 **`VirtualBox`** — via repo oficial da Oracle (`VirtualBox-7.2`), adaptado ao Secure Boot:
+      - `env_setup.yml`: fact `is_secure_boot` lido direto da variável EFI `SecureBoot` (não depende
+        do `mokutil`; boot BIOS → false). Conferido num EFI real: `0` ↔ `mokutil` "disabled".
+      - Repo `virtualbox` (`yum_repository`, `gpgcheck` + `repo_gpgcheck`; a chave é importada pelo
+        dnf — `rpm_key` exigiria `gpg2`, que pode faltar).
+      - Com Secure Boot: exige `mok_password` (vault), instala `mokutil`/`openssl`, gera
+        `/var/lib/shim-signed/mok/MOK.{der,priv}` (0700/0600, EKU codeSigning) e pede o registro
+        com `mokutil --import` só se `--test-key` não disser "already" (senha via stdin, `no_log`).
+        Tudo **antes** do pacote: o postinst da Oracle compila e assina, e o `vboxdrv.sh` refaz isso
+        no boot quando entra kernel novo. Aviso final pede reboot + "Enroll MOK".
+      - Dependências do build: `kernel-devel`, `gcc`, `make`, `elfutils-libelf-devel`.
+      - Validado em container: sem Secure Boot (instala, 2ª execução `changed=0`) e com Secure Boot
+        simulado por `mokutil` falso (chave criada com as permissões certas, 1 único `--import` com a
+        senha, 2ª execução `changed=0`).
+      - [ ] 🟡 Pendente de VM: build real do `vboxdrv` (o container roda o kernel do host) e o
+        registro na tela do MokManager — testar numa VM com EFI + Secure Boot.
 - [x] 🟠 `p7zip` / `p7zip-plugins` → `7zip-standalone` (`7za`) / `7zip` (`7z`).
       Validado: toda a `dnf_packages_common` (menos VirtualBox) instala num container EL10.
 - [x] 🟡 `clamav-update` → `clamav-freshclam`, `vim` → `vim-enhanced`, `shellcheck` → `ShellCheck`
