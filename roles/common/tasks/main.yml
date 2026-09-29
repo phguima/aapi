@@ -107,17 +107,22 @@
   loop: "{{ zsh_users }}"
   tags: [shell, antigravity]
 
-- name: ZSH | Add NVIDIA and API key placeholders to .zshrc
+# Drops the block written by AFPI under the old marker, so it is not left orphaned
+# next to the renamed one below.
+- name: ZSH | Remove legacy NVIDIA and API block from .zshrc
   ansible.builtin.blockinfile:
     path: "{{ item.home }}/.zshrc"
     marker: "# {mark} NVIDIA AND API CONFIGURATION"
+    state: absent
+  loop: "{{ zsh_users }}"
+  tags: [shell, setup]
+
+- name: ZSH | Add API key configuration to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ item.home }}/.zshrc"
+    marker: "# {mark} API CONFIGURATION"
     insertafter: '^# export MANPATH="/usr/local/man:\$MANPATH"'
     block: |
-      # Finer-Grained Control of GLX + OpenGL
-      #export __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0
-      #export __GLX_VENDOR_LIBRARY_NAME=nvidia
-      #export __NV_PRIME_RENDER_OFFLOAD=1
-
       # API KEYS Configuration
       {{ api_keys }}
     owner: "{{ item.name }}"

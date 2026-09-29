@@ -12,7 +12,6 @@
 
   roles:
     - { role: update, tags: [update] }
-    - { role: nvidia, tags: [nvidia] }
     - { role: hardware, tags: [hardware, drivers] }
     - { role: common, tags: [common, system] }
     - { role: apps, tags: [apps, software] }

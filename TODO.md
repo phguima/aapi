@@ -29,37 +29,28 @@ EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks
 - [x] 🟠 `kernel_maintenance.yml:25` — `dnf config-manager setopt "*debug*".enabled=0` é dnf5.
       No dnf4: `dnf config-manager --set-disabled '*debug*'` (ou simplesmente remover: no Alma
       os repos debug já vêm desabilitados).
-- [ ] 🟡 `hardware/main.yml:6` (comentado) — `dnf mark user` é dnf5; sai junto com o bloco NVIDIA (seção 3).
+- [x] `hardware/main.yml:6` (comentado) — `dnf mark user` (dnf5) saiu junto com o bloco NVIDIA.
 - [ ] 🟡 `kernel_maintenance.yml:40` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
       mas a saída inclui epoch (`kernel-0:6.12.0-…`). O `grep -v $(uname -r)` continua funcionando;
       só validar num host real antes de confiar na remoção.
 
-## 3. Remover NVIDIA e Steam (fora do escopo do AAPI)
+## 3. Remover NVIDIA e Steam — feito
 
-Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado. Remover tudo, não portar.
+Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
 
-- [ ] 🔴 `roles/nvidia/` — apagar o role inteiro e a linha `{ role: nvidia, ... }` do `site.yml`.
-- [ ] 🔴 `roles/hardware/main.yml:4-58` — remover o bloco NVIDIA (comentados + Vulkan, VA-API/NVENC
-      e `/etc/modprobe.d/nvidia.conf`).
-- [ ] 🔴 `group_vars/all/all.yml:35-57` — remover `nvidia_prerequisite_packages`,
-      `nvidia_driver_packages`, `nvidia_multimedia_packages`, `nvidia_vulkan_packages`.
-- [ ] 🔴 `group_vars/all/all.yml:84` — remover `steam` de `dnf_packages_common` (não instala no EL10:
-      depende de i686, que não existe).
-- [ ] 🔴 `roles/apps/main.yml:141-167` — remover as 3 tasks de override do `steam.desktop`
-      (a de `update-desktop-database` só existe para elas).
-- [ ] 🟠 `tasks/env_setup.yml` — remover `is_nvidia`, `has_nvidia_driver` e o check de `nvidia-smi`
-      (linhas 54, 57, 70, 75-86). Manter a detecção de Intel/AMD.
-- [ ] 🟠 `roles/common/main.yml:110-126` — tirar os `#export __NV_PRIME_*` do bloco do `.zshrc`
-      e renomear o marker para `# {mark} API CONFIGURATION`. Atenção: mudar o marker faz o
-      `blockinfile` criar um bloco novo e deixar o antigo órfão em `.zshrc` já existentes
-      (irrelevante em instalação limpa).
-- [ ] 🟡 `group_vars/all/all.yml:169` — remover o alias `nvidia-run`.
-- [ ] 🟡 `bootstrap.sh:65` — aviso "NVIDIA driver install requires reboot".
-- [ ] 🟡 `README.md` — seção "NVIDIA Users" do fluxo em 3 passos, tags `nvidia`/`drivers`/`power`,
-      troubleshooting de freeze NVIDIA/ASUS.
-- [ ] ~~`secrets.yml` — remover `mok_password`~~ **não remover**: passa a ser usada pela assinatura
-      do VirtualBox com Secure Boot (seção 5).
-- [ ] ✅ Manter `nvtop` — também monitora GPU Intel/AMD.
+- [x] Role `nvidia` apagado e retirado do `site.yml`.
+- [x] Bloco NVIDIA do role `hardware` (incl. o `dnf mark user` comentado e o `/etc/modprobe.d/nvidia.conf`).
+- [x] Variáveis `nvidia_*`, pacote `steam` e alias `nvidia-run` do `all.yml`.
+- [x] Seção "Shortcuts & Overrides" do role `apps` (4 tasks, todas só para o `steam.desktop`).
+- [x] `env_setup.yml`: facts `is_nvidia` / `has_nvidia_driver` e o check de `nvidia-smi`
+      (detecção Intel/AMD mantida).
+- [x] `.zshrc`: bloco renomeado para `API CONFIGURATION` sem os `__NV_PRIME_*`, e uma task
+      remove o bloco antigo `NVIDIA AND API CONFIGURATION` para não ficar órfão.
+      Validado em container: migra na 1ª execução, `changed=0` na 2ª.
+- [x] Aviso de reboot do `bootstrap.sh` generalizado.
+- [ ] 🟡 `README.md` — seção "NVIDIA Users", tags `nvidia`/`drivers`/`power`, troubleshooting de
+      freeze NVIDIA/ASUS → fica para a reescrita do README (seção 9).
+- ⚠️ `mok_password` **fica** no vault: será usado pela assinatura do VirtualBox (seção 5).
 
 ## 4. Multimídia / aceleração de vídeo (`group_vars/all/all.yml`)
 
@@ -155,7 +146,7 @@ Pontos só para ficar de olho:
 1. ~~`git init` + commit do estado atual~~ ✅ feito.
 2. Seção 1 (bootstrap + CRB/EPEL/RPM Fusion) — sem isso nada roda.
 3. Seções 4 e 5 (listas de pacotes) — o grosso das falhas duras.
-4. Seção 3 (remoção de NVIDIA/Steam).
+4. ~~Seção 3 (remoção de NVIDIA/Steam)~~ ✅ feito.
 5. Seções 7 e 2 (6 já feita).
 6. Seção 9 (renomear) + README.
 7. Rodar `ansible-playbook --check` num host/VM AlmaLinux 10.
