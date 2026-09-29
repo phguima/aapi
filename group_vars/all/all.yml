@@ -26,9 +26,9 @@ multimedia_packages:
 
 # Packages and Apps
 dnf_packages_common:
-  - argyllcms
+  - 7zip             # 7z (was p7zip-plugins)
+  - 7zip-standalone  # 7za (was p7zip)
 #  - btrfs-assistant
-  - chkrootkit
   - chromium
   - clamav
   - clamav-update
@@ -42,8 +42,6 @@ dnf_packages_common:
   - nvtop
   - pipx
   - python3-pip
-  - p7zip
-  - p7zip-plugins
 #  - rawtherapee
   - rkhunter
   - shellcheck
@@ -52,7 +50,6 @@ dnf_packages_common:
   - testdisk
   - tmux
   - tuptime
-  - unhide
   - unrar
   - unzip
   - uv

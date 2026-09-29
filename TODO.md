@@ -68,9 +68,9 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
 
 Faltando no EL10 (nem EPEL nem RPM Fusion):
 
-- [ ] 🔴 `argyllcms` — ausente (afeta DisplayCAL, que é Flatpak e já traz o próprio Argyll; pode só remover).
-- [ ] 🔴 `chkrootkit` — ausente. Remover (o `rkhunter` e o `lynis` existem).
-- [ ] 🔴 `unhide` — ausente. Remover.
+- [x] 🔴 `argyllcms` — ausente (afeta DisplayCAL, que é Flatpak e já traz o próprio Argyll; pode só remover).
+- [x] 🔴 `chkrootkit` — ausente. Remover (o `rkhunter` e o `lynis` existem).
+- [x] 🔴 `unhide` — ausente. Remover.
 - [x] 🔴 `google-roboto-fonts` — ausente no EL10 (o `google-roboto-slab-fonts` é outra família).
       Agora o role `desktop` instala o **último release** de `googlefonts/roboto-3-classic`
       (TTFs estáticos hinted em `/usr/local/share/fonts/roboto`), conferindo o SHA-256 que a API do
@@ -101,8 +101,8 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
         4. Avisar: reboot + registrar a chave na tela azul do MokManager (passo manual inevitável).
         - Consequência: **manter `mok_password` no vault** (a seção 3 previa remover).
         - Teste do ramo com Secure Boot só em VM com firmware OVMF Secure Boot, não em container.
-- [ ] 🟠 `p7zip` / `p7zip-plugins` — resolvem via *provides* para `7zip-standalone` / `7zip`.
-      Funciona, mas trocar pelos nomes reais.
+- [x] 🟠 `p7zip` / `p7zip-plugins` → `7zip-standalone` (`7za`) / `7zip` (`7z`).
+      Validado: toda a `dnf_packages_common` (menos VirtualBox) instala num container EL10.
 - [ ] 🟡 `clamav-update` resolve para `clamav-freshclam`; `vim` → `vim-enhanced`; `shellcheck` →
       `ShellCheck`. Funcionam via provides; opcional renomear.
 - [ ] ✅ OK: `chromium`, `clamav`, `fastfetch`, `htop`, `hwinfo`, `lm_sensors`, `lynis`, `nodejs` (22),
