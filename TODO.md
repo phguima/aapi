@@ -33,6 +33,16 @@ EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks
 - [ ] 🟡 `kernel_maintenance.yml:40` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
       mas a saída inclui epoch (`kernel-0:6.12.0-…`). O `grep -v $(uname -r)` continua funcionando;
       só validar num host real antes de confiar na remoção.
+      - Lógica já validada em container (2026-09-29): com `kernel-core` 211.55.1 e 211.56.1
+        instalados, removeu o 211.55.1 e manteve o 211.56.1; 2ª execução `changed=0`. O container
+        roda o kernel do host, então a proteção do kernel em uso só é testável na VM.
+      - Roteiro na VM (o repo mantém versões anteriores do 10.x: `dnf --showduplicates list kernel`):
+        1. Instalar um kernel anterior ao atual: `sudo dnf install kernel-<versão anterior>`.
+        2. **Teste 1** — rodando o kernel novo: `--tags kernel` → sobra só o novo; re-run sem mudança.
+        3. **Teste 2 (segurança)** — reinstalar o antigo, dar boot nele pelo GRUB (`uname -r`),
+           rodar `--tags kernel` → os **dois** continuam instalados (o novo nunca entra na lista e
+           o antigo é o que está rodando).
+        4. **Teste 3** — com um só kernel: a task é pulada.
 
 ## 3. Remover NVIDIA e Steam — feito
 
