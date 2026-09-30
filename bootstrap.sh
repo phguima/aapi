@@ -44,8 +44,9 @@ else
 fi
 
 # 2. Install required Ansible collections
+# community.general 11.x is the last series that supports EL10's ansible-core 2.16 (12.x needs 2.17+)
 prompt "Installing required Ansible collections..."
-ansible-galaxy collection install community.general
+ansible-galaxy collection install 'community.general:>=11.0.0,<12.0.0'
 
 # 3. Check for project structure
 if [ ! -f "group_vars/all/all.yml" ]; then
