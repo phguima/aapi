@@ -159,9 +159,11 @@ Pontos só para ficar de olho:
 ## Ordem sugerida
 
 1. ~~`git init` + commit do estado atual~~ ✅ feito.
-2. Seção 1 (bootstrap + CRB/EPEL/RPM Fusion) — sem isso nada roda.
-3. Seções 4 e 5 (listas de pacotes) — o grosso das falhas duras.
+2. ~~Seção 1 (bootstrap + CRB/EPEL/RPM Fusion)~~ ✅ feito.
+3. ~~Seções 4 e 5 (listas de pacotes, Roboto, VirtualBox)~~ ✅ feito.
 4. ~~Seção 3 (remoção de NVIDIA/Steam)~~ ✅ feito.
-5. Seções 7 e 2 (6 já feita).
+5. ~~Seções 7 e 2 (6 já feita)~~ ✅ feito.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
-7. Rodar `ansible-playbook --check` num host/VM AlmaLinux 10.
+7. **Pendente:** VM AlmaLinux 10 com EFI + Secure Boot — rodar `--check` e depois a execução
+   completa; conferir limpeza de kernels (seção 2), build real do `vboxdrv` e registro da chave
+   no MokManager (seção 5).
