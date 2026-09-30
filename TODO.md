@@ -166,6 +166,104 @@ Pontos só para ficar de olho:
 
 ---
 
+## 11. Roteiro de testes na VM (VirtualBox, AlmaLinux 10 + EFI + Secure Boot)
+
+Tudo o que container não cobre. Marcar cada etapa ao concluir; anotar aqui qualquer falha.
+
+### Etapa 0 — Criar a VM (no host)
+Sintaxe conferida no VBoxManage 7.2 do host (`Oracle10_64`, `--firmware=efi`, `modifynvram`):
+```bash
+VM=alma10-aapi; DIR="$HOME/VirtualBox VMs/$VM"
+VBoxManage createvm --name=$VM --ostype=Oracle10_64 --register
+VBoxManage modifyvm $VM --memory=6144 --cpus=4 --firmware=efi --graphicscontroller=vmsvga --vram=128 --nic1=nat
+VBoxManage createmedium disk --filename="$DIR/$VM.vdi" --size=40960
+VBoxManage storagectl $VM --name=SATA --add=sata --controller=IntelAhci
+VBoxManage storageattach $VM --storagectl=SATA --port=0 --device=0 --type=hdd --medium="$DIR/$VM.vdi"
+VBoxManage storageattach $VM --storagectl=SATA --port=1 --device=0 --type=dvddrive \
+  --medium="$HOME/Downloads/AlmaLinux-10-latest-x86_64-dvd.iso"
+# Secure Boot: chaves padrão (Microsoft + Oracle PK) e ativação
+VBoxManage modifynvram $VM inituefivarstore
+VBoxManage modifynvram $VM enrollmssignatures
+VBoxManage modifynvram $VM enrollorclpk
+VBoxManage modifynvram $VM secureboot --enable
+```
+(Pela interface: Sistema → Habilitar EFI + Habilitar Secure Boot → "Redefinir chaves para o padrão".)
+- [ ] Instalar com o ambiente **Workstation** (GNOME), usuário administrador (`wheel`).
+- [ ] Na VM: `mokutil --sb-state` → `SecureBoot enabled`. Anotar `hostname` e `uname -r`.
+- [ ] Snapshot limpo: `VBoxManage snapshot alma10-aapi take limpo` (VM desligada).
+
+### Etapa 1 — Bootstrap e `--check`
+```bash
+git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
+ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check
+```
+- [ ] `bootstrap.sh` instala `ansible-core`, `pciutils` e `community.general` sem erro.
+- [ ] `--check` do playbook inteiro: anotar aqui cada task que falhar (só a etapa da Roboto foi
+      validada em check mode; tasks que dependem de `register` de comando podem quebrar).
+
+### Etapa 2 — Execução completa
+```bash
+ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.log
+```
+- [ ] Termina com `failed=0` e o banner `AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!`.
+- [ ] Aparece o aviso do VirtualBox pedindo reboot + "Enroll MOK" (senha `alma-aapi`).
+- [ ] Esperado: o `update` instala um kernel mais novo que o da ISO, mas a VM ainda roda o antigo,
+      então o build do `vboxdrv` na instalação pode falhar por falta de `kernel-devel` do kernel em
+      uso. Não é erro do playbook: ele deve compilar no próximo boot (etapa 3). Anotar a mensagem.
+
+### Etapa 3 — Reboot, registro da chave e VirtualBox
+- [ ] No boot aparece a tela azul do MokManager → **Enroll MOK** → Continue → senha `alma-aapi` →
+      Reboot. (Se não aparecer: `mokutil --list-new` antes do reboot deve listar a chave.)
+- [ ] `mokutil --test-key /var/lib/shim-signed/mok/MOK.der` → "is already enrolled".
+- [ ] `uname -r` → kernel novo; `lsmod | grep vboxdrv` → carregado.
+- [ ] `modinfo -F signer vboxdrv` → `<hostname> VirtualBox module signing` (compilado e assinado
+      no boot para o kernel novo — cobre o caso "kernel atualizado").
+- [ ] `systemctl status vboxdrv` ativo; `VBoxManage --version` → 7.2.x; usuário nos grupos
+      `vboxusers` e `vboxsf` (`id`, após novo login).
+
+### Etapa 4 — Conferência por role
+- [ ] **Repos:** `dnf repolist` → `crb`, `epel`, `rpmfusion-free-updates`, `rpmfusion-nonfree-updates`,
+      `virtualbox`, `brave-browser`, `code`, `gh-cli`; `dnf repolist --enabled | grep -i debug` → vazio.
+- [ ] **Multimídia:** `rpm -q ffmpeg` (e `ffmpeg-free` ausente). A GPU da VM (VMSVGA) não é Intel,
+      então os drivers Intel devem ter sido pulados.
+- [ ] **Apps:** `rpm -q chromium clamav 7zip ShellCheck vim-enhanced uv brave-browser code gh`;
+      `systemctl is-active clamav-freshclam`; `flatpak list --app` com os apps de `flatpak_apps_*`.
+- [ ] **Shell:** `echo $SHELL` → zsh (novo login); tema `kali-like-alt`; `grep -A3 "BEGIN API" ~/.zshrc`
+      com o conteúdo do vault; aliases presentes (e nenhum `thevoid`).
+- [ ] **Hostname:** igual ao anotado na etapa 0.
+- [ ] **GRUB:** `grep -E "GRUB_TIMEOUT|GRUB_GFXMODE" /etc/default/grub`; `ls -l /boot/grub2/grub.cfg`
+      com data da execução; menu no boot espera 5 s.
+- [ ] **Fontes:** `cat /usr/local/share/fonts/roboto/.version` → versão atual;
+      `fc-list : family | grep -c '^Roboto'` → 8; `fc-list | grep -i "fira code"`.
+- [ ] **Ptyxis:** abre com 120x35, cursor sublinhado, Fira Code 10, opacidade 0.95.
+- [ ] **Cedilha** (após logout/login): no editor de texto e no Brave, `'` + `c` → `ç` (e `'` + `C` → `Ç`).
+- [ ] **AI tools:** `claude --version`; `pipx list` com markitdown, notebooklm-py, pdf2docx.
+
+### Etapa 5 — Idempotência
+```bash
+ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.log
+```
+- [ ] `changed=` só nas tasks sabidamente não idempotentes: as 3 do Ptyxis
+      (`GNOME | Set PTYxis ...`, sem `changed_when`, herdadas do AFPI). Qualquer outra é bug.
+- [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
+      / `dconf read` antes de escrever).
+
+### Etapa 6 — Limpeza de kernels
+- [ ] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
+
+### Etapa 7 — Roboto: atualização e GitHub fora
+- [ ] Simular versão antiga: `echo v0 | sudo tee /usr/local/share/fonts/roboto/.version` e
+      `--tags roboto` → reinstala e volta à versão atual.
+- [ ] Sem rede (`nmcli networking off`), `--tags roboto` → só o aviso, fontes mantidas;
+      depois `nmcli networking on`.
+
+### Etapa 8 — Secure Boot desligado (opcional)
+- [ ] Restaurar o snapshot `limpo`, desligar o Secure Boot (`VBoxManage modifynvram alma10-aapi
+      secureboot --disable`), rodar o playbook: nenhuma task de MOK roda, sem aviso de reboot, e
+      o `vboxdrv` carrega sem assinatura.
+
+---
+
 ## Ordem sugerida
 
 1. ~~`git init` + commit do estado atual~~ ✅ feito.
@@ -174,6 +272,4 @@ Pontos só para ficar de olho:
 4. ~~Seção 3 (remoção de NVIDIA/Steam)~~ ✅ feito.
 5. ~~Seções 7 e 2 (6 já feita)~~ ✅ feito.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
-7. **Pendente:** VM AlmaLinux 10 com EFI + Secure Boot — rodar `--check` e depois a execução
-   completa; conferir limpeza de kernels (seção 2), build real do `vboxdrv` e registro da chave
-   no MokManager (seção 5).
+7. **Pendente:** testes na VM AlmaLinux 10 com EFI + Secure Boot — roteiro completo na **seção 11**.
