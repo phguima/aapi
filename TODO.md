@@ -197,14 +197,16 @@ VBoxManage modifynvram $VM secureboot --enable
 - [ ] Na VM: `mokutil --sb-state` → `SecureBoot enabled`. Anotar `hostname` e `uname -r`.
 - [ ] Snapshot limpo: `VBoxManage snapshot alma10-aapi take limpo` (VM desligada).
 
-### Etapa 1 — Bootstrap e `--check`
+### Etapa 1 — Bootstrap
 ```bash
 git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
-ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check
 ```
 - [ ] `bootstrap.sh` instala `ansible-core`, `pciutils` e `community.general` sem erro.
-- [ ] `--check` do playbook inteiro: anotar aqui cada task que falhar (só a etapa da Roboto foi
-      validada em check mode; tasks que dependem de `register` de comando podem quebrar).
+- [x] `--check` em máquina limpa (2026-09-30): falha por desenho, não é bug. Em check mode os
+      repos (EPEL, RPM Fusion, VirtualBox, Brave, VS Code, gh) só são "simulados", então a 1ª task
+      que instala pacote de um deles quebra — na VM foi `Codecs | Swap ffmpeg-free for full ffmpeg`
+      com `No package ffmpeg available` (`rpm -qa | grep -i rpmfusion` vazio). O `--check` foi
+      movido para a etapa 5, depois do setup completo.
 
 ### Etapa 2 — 1ª execução: atualizar e parar
 ```bash
@@ -257,6 +259,10 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       (`GNOME | Set PTYxis ...`, sem `changed_when`, herdadas do AFPI). Qualquer outra é bug.
 - [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
       / `dconf read` antes de escrever).
+- [ ] `--check` com tudo já instalado (repos presentes, então o resultado passa a valer):
+      `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check` → esperado
+      `failed=0`. Anotar aqui cada task que falhar (só a etapa da Roboto foi validada em check
+      mode; tasks que dependem de `register` de comando podem quebrar).
 
 ### Etapa 6 — Limpeza de kernels e rebuild do `vboxdrv` em outro kernel
 - [ ] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
