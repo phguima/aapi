@@ -18,7 +18,7 @@ AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a
 
 The project is organized to isolate responsibilities, ensuring idempotency and ease of maintenance:
 
-*   **`update`**: DNF tuning, the **CRB** and **EPEL** repositories (enabled before anything else is installed), **RPM Fusion for EL**, and a full system upgrade.
+*   **`update`**: DNF tuning, the **CRB** and **EPEL** repositories (enabled before anything else is installed), **RPM Fusion for EL**, a full system upgrade, and a **reboot gate** that stops the playbook when the upgrade requires a reboot.
 *   **`hardware`**: Intel VA-API drivers, full `ffmpeg` (replacing `ffmpeg-free`) and multimedia codecs.
 *   **`common`**: Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
 *   **`apps`**: DNF and Flatpak applications, ClamAV, Brave, VS Code, GitHub CLI and **VirtualBox from Oracle's repository**, with Secure Boot-aware module signing (see below).
@@ -60,11 +60,14 @@ Prepare the Ansible environment (installs `ansible-core`, `pciutils` and the `co
 ./bootstrap.sh
 ```
 
-### 2. Run the Playbook
-Apply the full configuration:
+### 2. Run the Playbook (update, reboot, run again)
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass
 ```
+
+On a fresh install the first run only sets up the repositories and upgrades the system. If the upgrade brings a new kernel or core libraries (`dnf needs-restarting -r`), the playbook **stops there and asks for a reboot**. After rebooting, run the **same command again**: the update step passes and the rest of the setup runs on the new kernel. This matters because VirtualBox builds its kernel modules against the running kernel, and the old kernel can only be cleaned up once it is no longer in use.
+
+With Secure Boot on, one more reboot is needed at the end to enroll the VirtualBox signing key (see below).
 
 Or only a part of it, for example just the repositories:
 ```bash

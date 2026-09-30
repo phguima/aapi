@@ -21,6 +21,11 @@ Legenda: 🔴 quebra o playbook · 🟠 funciona errado / silenciosamente · �
 - [x] 🟠 Considerar assertar `ansible_facts['distribution'] == 'AlmaLinux'` e major `10` no
       `env_setup.yml`, para falhar cedo se rodar no Fedora por engano.
 
+- [x] **Reboot gate** no fim do role `update` (2026-09-29): `dnf needs-restarting -r` → rc 1 para o
+      playbook (`meta: end_host`) com aviso "reinicie e rode de novo"; rc 0 segue; outro rc falha.
+      Reproduz o fluxo do AFPI (atualizar → reiniciar → resto) sem depender de lembrar dele.
+      Validado em container forçando rc 1/0/3.
+
 ## 2. dnf4 vs dnf5
 
 EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks têm
@@ -201,23 +206,27 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check
 - [ ] `--check` do playbook inteiro: anotar aqui cada task que falhar (só a etapa da Roboto foi
       validada em check mode; tasks que dependem de `register` de comando podem quebrar).
 
-### Etapa 2 — Execução completa
+### Etapa 2 — 1ª execução: atualizar e parar
+```bash
+ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run0.log
+```
+- [ ] A ISO traz kernel mais antigo que o repo: o `update` atualiza e o playbook **para** com
+      "needs a REBOOT before continuing" (sem instalar apps, sem o banner final).
+- [ ] Reiniciar; `uname -r` → kernel novo.
+
+### Etapa 3 — 2ª execução: setup completo, registro da chave e VirtualBox
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.log
 ```
-- [ ] Termina com `failed=0` e o banner `AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!`.
-- [ ] Aparece o aviso do VirtualBox pedindo reboot + "Enroll MOK" (senha `alma-aapi`).
-- [ ] Esperado: o `update` instala um kernel mais novo que o da ISO, mas a VM ainda roda o antigo,
-      então o build do `vboxdrv` na instalação pode falhar por falta de `kernel-devel` do kernel em
-      uso. Não é erro do playbook: ele deve compilar no próximo boot (etapa 3). Anotar a mensagem.
-
-### Etapa 3 — Reboot, registro da chave e VirtualBox
-- [ ] No boot aparece a tela azul do MokManager → **Enroll MOK** → Continue → senha `alma-aapi` →
-      Reboot. (Se não aparecer: `mokutil --list-new` antes do reboot deve listar a chave.)
+- [ ] O `update` passa direto (sem reboot pendente) e termina com `failed=0` e o banner
+      `AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!`.
+- [ ] O VirtualBox compila **e assina** o `vboxdrv` já na instalação (há `kernel-devel` do kernel em
+      uso). Aparece o aviso pedindo reboot + "Enroll MOK" (senha `alma-aapi`).
+- [ ] Reboot → tela azul do MokManager → **Enroll MOK** → Continue → senha `alma-aapi` → Reboot.
+      (Se não aparecer: `mokutil --list-new` antes do reboot deve listar a chave.)
 - [ ] `mokutil --test-key /var/lib/shim-signed/mok/MOK.der` → "is already enrolled".
-- [ ] `uname -r` → kernel novo; `lsmod | grep vboxdrv` → carregado.
-- [ ] `modinfo -F signer vboxdrv` → `<hostname> VirtualBox module signing` (compilado e assinado
-      no boot para o kernel novo — cobre o caso "kernel atualizado").
+- [ ] `lsmod | grep vboxdrv` → carregado; `modinfo -F signer vboxdrv` →
+      `<hostname> VirtualBox module signing`.
 - [ ] `systemctl status vboxdrv` ativo; `VBoxManage --version` → 7.2.x; usuário nos grupos
       `vboxusers` e `vboxsf` (`id`, após novo login).
 
@@ -243,13 +252,21 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.l
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.log
 ```
+- [ ] Não para no reboot gate (nada novo desde o boot).
 - [ ] `changed=` só nas tasks sabidamente não idempotentes: as 3 do Ptyxis
       (`GNOME | Set PTYxis ...`, sem `changed_when`, herdadas do AFPI). Qualquer outra é bug.
 - [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
       / `dconf read` antes de escrever).
 
-### Etapa 6 — Limpeza de kernels
+### Etapa 6 — Limpeza de kernels e rebuild do `vboxdrv` em outro kernel
 - [ ] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
+- [ ] No teste 2, instalar também o `kernel-devel` da versão antiga
+      (`sudo dnf install kernel-<ver> kernel-devel-<ver>`). Ao dar boot nela, o `vboxdrv.sh` deve
+      compilar e **assinar** o módulo para esse kernel: `lsmod | grep vboxdrv` e
+      `modinfo -F signer vboxdrv` (cobre o caso "entrou kernel novo" sem esperar um update real).
+- [ ] Após instalar o kernel antigo, uma execução **completa** para no reboot gate (esperado: sim,
+      o `needs-restarting -r` conta qualquer kernel instalado depois do boot, mesmo mais antigo).
+      Os testes com `--tags kernel` não passam pelo gate, que só roda com a tag `update`.
 
 ### Etapa 7 — Roboto: atualização e GitHub fora
 - [ ] Simular versão antiga: `echo v0 | sudo tee /usr/local/share/fonts/roboto/.version` e

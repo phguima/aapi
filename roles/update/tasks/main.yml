@@ -48,3 +48,30 @@
     update_cache: yes
   become: true
   tags: [update]
+# --- Reboot gate ---
+# If the upgrade touched the kernel or core libraries, stop here: the rest of the playbook must
+# run on the new kernel (VirtualBox builds its modules against the running kernel's
+# kernel-devel, and kernel cleanup can only drop the old one once it is no longer running).
+- name: System | Check whether a reboot is required
+  ansible.builtin.command: dnf needs-restarting -r
+  register: reboot_hint
+  changed_when: false
+  failed_when: reboot_hint.rc not in [0, 1]
+  check_mode: false
+  tags: [update]
+
+- name: System | Stop until the system is rebooted
+  when: reboot_hint.rc == 1
+  tags: [update]
+  block:
+    - name: System | Ask for a reboot
+      ansible.builtin.debug:
+        msg:
+          - "=================================================================="
+          - "The system was updated and needs a REBOOT before continuing."
+          - "Reboot, then run the same ansible-playbook command again:"
+          - "the update step will pass and the rest of the setup will run."
+          - "=================================================================="
+
+    - name: System | End the play for this host
+      ansible.builtin.meta: end_host
