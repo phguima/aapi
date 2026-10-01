@@ -223,9 +223,10 @@ git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run0.log
 ```
-- [ ] Se o update exigir reboot, o playbook **para** com "needs a REBOOT before continuing"
+- [x] Se o update exigir reboot, o playbook **para** com "needs a REBOOT before continuing"
       (sem os outros roles, sem o banner final). Se não exigir, segue direto (etapa 3).
-- [ ] Se parou: reiniciar; `uname -r` → kernel mais recente.
+- [x] Se parou: reiniciar; `uname -r` → kernel mais recente.
+      Verificado numa VM nova (2026-10-01): parou no gate e, após o reboot, kernel atualizado.
 
 ### Etapa 3 — 2ª execução: setup completo, registro da chave e VirtualBox
 ```bash
