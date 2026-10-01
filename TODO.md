@@ -203,9 +203,10 @@ VBoxManage modifynvram $VM enrollorclpk
 VBoxManage modifynvram $VM secureboot --enable
 ```
 (Pela interface: Sistema → Habilitar EFI + Habilitar Secure Boot → "Redefinir chaves para o padrão".)
-- [ ] Instalar com o ambiente **Workstation** (GNOME), usuário administrador (`wheel`).
-- [ ] Na VM: `mokutil --sb-state` → `SecureBoot enabled`. Anotar `hostname` e `uname -r`.
-- [ ] Snapshot limpo: `VBoxManage snapshot alma10-aapi take limpo` (VM desligada).
+- [x] Instalar com o ambiente **Workstation** (GNOME), usuário administrador (`wheel`).
+- [x] Na VM: `mokutil --sb-state` → `SecureBoot enabled`. Anotar `hostname` e `uname -r`.
+- [x] Snapshot limpo: `VBoxManage snapshot alma10-aapi take limpo` (VM desligada).
+      Etapa verificada (2026-10-01).
 
 ### Etapa 1 — Bootstrap
 ```bash
