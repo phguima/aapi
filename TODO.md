@@ -211,7 +211,8 @@ VBoxManage modifynvram $VM secureboot --enable
 ```bash
 git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
 ```
-- [ ] `bootstrap.sh` instala `ansible-core`, `pciutils` e `community.general` sem erro.
+- [x] `bootstrap.sh` instala `ansible-core`, `pciutils` e `community.general` sem erro.
+      Verificado na VM (2026-10-01), já com a `community.general` fixada em 11.x (`4e2c826`).
 - [x] `--check` em máquina limpa (2026-09-30): falha por desenho, não é bug. Em check mode os
       repos (EPEL, RPM Fusion, VirtualBox, Brave, VS Code, gh) só são "simulados", então a 1ª task
       que instala pacote de um deles quebra — na VM foi `Codecs | Swap ffmpeg-free for full ffmpeg`
@@ -219,12 +220,21 @@ git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
       movido para a etapa 5, depois do setup completo.
 
 ### Etapa 2 — 1ª execução: atualizar e parar
+O gate (`dnf needs-restarting -r`) **não** para por qualquer update: só quando algum destes foi
+instalado/atualizado depois do boot — `kernel`, `kernel-core`, `kernel-rt`, `glibc`,
+`linux-firmware`, `systemd`, `dbus`, `dbus-broker`, `dbus-daemon`, `microcode_ctl` (lista do
+`python3-dnf-plugins-core` 4.7.0 do EL10, mais o que houver em
+`/etc/dnf/plugins/needs-restarting.d/*.conf`). Mesmo com a ISO já no kernel mais recente, para se
+um dos outros vier. Prever antes de rodar:
 ```bash
+dnf list --upgrades kernel kernel-core glibc linux-firmware systemd dbus dbus-broker microcode_ctl
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run0.log
 ```
-- [ ] A ISO traz kernel mais antigo que o repo: o `update` atualiza e o playbook **para** com
-      "needs a REBOOT before continuing" (sem instalar apps, sem o banner final).
-- [ ] Reiniciar; `uname -r` → kernel novo.
+- [ ] Se o `dnf list --upgrades` listou algo: o `update` atualiza e o playbook **para** com
+      "needs a REBOOT before continuing" (`failed=0`, sem os outros roles, sem o banner final).
+      Se veio vazio: não para e segue direto para a etapa 3 (comportamento correto, nada do
+      sistema base mudou).
+- [ ] Reiniciar; `uname -r` → kernel mais recente instalado.
 
 ### Etapa 3 — 2ª execução: setup completo, registro da chave e VirtualBox
 ```bash
