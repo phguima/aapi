@@ -131,8 +131,10 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 - [x] ✅ GNOME: `flatseal`, `gnome-tweaks` (EPEL). KDE: `ktorrent`, `plasma-sdk`, `kde-gtk-config`,
       `konsole` (EPEL, Plasma 6.6). `ptyxis` é o terminal padrão do EL10 (AppStream).
 - [x] ✅ Brave, VS Code, GitHub CLI: repos próprios, sem dependência de versão do Fedora. OK.
-      Os três itens confirmados (2026-10-01). A VM era **KDE**: os pacotes GNOME (`flatseal`,
-      `gnome-tweaks`) só foram validados em container.
+      Os três itens confirmados (2026-10-01). A VM era **KDE**: o que é só do GNOME foi validado em
+      container simulando uma sessão GNOME (usuário com D-Bus, `XDG_CURRENT_DESKTOP=GNOME`, playbook
+      via `sudo`): `--tags gnome` instalou `flatseal`, `gnome-tweaks`, os 3 Flatpaks GNOME e aplicou
+      o Ptyxis; 2ª execução `changed=0`, `--check` `failed=0`.
 
 ## 6. Hardware ASUS — removido
 
