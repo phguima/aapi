@@ -307,9 +307,10 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       Etapa verificada na VM (2026-10-01).
 
 ### Etapa 8 — Secure Boot desligado (opcional)
-- [ ] Restaurar o snapshot `limpo`, desligar o Secure Boot (`VBoxManage modifynvram alma10-aapi
+- [x] Restaurar o snapshot `limpo`, desligar o Secure Boot (`VBoxManage modifynvram alma10-aapi
       secureboot --disable`), rodar o playbook: nenhuma task de MOK roda, sem aviso de reboot, e
       o `vboxdrv` carrega sem assinatura.
+      Etapa verificada na VM (2026-10-01).
 
 ---
 
