@@ -118,8 +118,9 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       - Validado em container: sem Secure Boot (instala, 2ª execução `changed=0`) e com Secure Boot
         simulado por `mokutil` falso (chave criada com as permissões certas, 1 único `--import` com a
         senha, 2ª execução `changed=0`).
-      - [ ] 🟡 Pendente de VM: build real do `vboxdrv` (o container roda o kernel do host) e o
+      - [x] 🟡 Pendente de VM: build real do `vboxdrv` (o container roda o kernel do host) e o
         registro na tela do MokManager — testar numa VM com EFI + Secure Boot.
+        Validado na VM (2026-10-01): etapas 3 e 6 da seção 11.
 - [x] 🟠 `p7zip` / `p7zip-plugins` → `7zip-standalone` (`7za`) / `7zip` (`7z`).
       Validado: toda a `dnf_packages_common` (menos VirtualBox) instala num container EL10.
 - [x] 🟡 `clamav-update` → `clamav-freshclam`, `vim` → `vim-enhanced`, `shellcheck` → `ShellCheck`
@@ -322,4 +323,5 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 4. ~~Seção 3 (remoção de NVIDIA/Steam)~~ ✅ feito.
 5. ~~Seções 7 e 2 (6 já feita)~~ ✅ feito.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
-7. **Pendente:** testes na VM AlmaLinux 10 com EFI + Secure Boot — roteiro completo na **seção 11**.
+7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
+   Restam só os opcionais 🟡: `changed_when` no Ptyxis (etapa 5) e os freeworld do VLC/HEIF (seção 4).
