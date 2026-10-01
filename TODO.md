@@ -35,7 +35,7 @@ EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks
       No dnf4: `dnf config-manager --set-disabled '*debug*'` (ou simplesmente remover: no Alma
       os repos debug já vêm desabilitados).
 - [x] `hardware/main.yml:6` (comentado) — `dnf mark user` (dnf5) saiu junto com o bloco NVIDIA.
-- [ ] 🟡 `kernel_maintenance.yml:40` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
+- [x] 🟡 `kernel_maintenance.yml:40` — `repoquery --installonly --latest-limit=-1` funciona no dnf4,
       mas a saída inclui epoch (`kernel-0:6.12.0-…`). O `grep -v $(uname -r)` continua funcionando;
       só validar num host real antes de confiar na remoção.
       - Lógica já validada em container (2026-09-29): com `kernel-core` 211.55.1 e 211.56.1
@@ -48,6 +48,7 @@ EL10 usa **dnf 4**. O que foi escrito com sintaxe dnf5 falha — e várias tasks
            rodar `--tags kernel` → os **dois** continuam instalados (o novo nunca entra na lista e
            o antigo é o que está rodando).
         4. **Teste 3** — com um só kernel: a task é pulada.
+      - Validado na VM (2026-10-01): testes 1, 2 e 3 ok.
 
 ## 3. Remover NVIDIA e Steam — feito
 
@@ -288,7 +289,7 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       Verificado na VM (2026-10-01): `failed=0`, nenhuma task quebrou.
 
 ### Etapa 6 — Limpeza de kernels e rebuild do `vboxdrv` em outro kernel
-- [ ] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
+- [x] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
 - [ ] No teste 2, instalar também o `kernel-devel` da versão antiga
       (`sudo dnf install kernel-<ver> kernel-devel-<ver>`). Ao dar boot nela, o `vboxdrv.sh` deve
       compilar e **assinar** o módulo para esse kernel: `lsmod | grep vboxdrv` e
