@@ -300,10 +300,11 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       Etapa verificada na VM (2026-10-01).
 
 ### Etapa 7 — Roboto: atualização e GitHub fora
-- [ ] Simular versão antiga: `echo v0 | sudo tee /usr/local/share/fonts/roboto/.version` e
+- [x] Simular versão antiga: `echo v0 | sudo tee /usr/local/share/fonts/roboto/.version` e
       `--tags roboto` → reinstala e volta à versão atual.
-- [ ] Sem rede (`nmcli networking off`), `--tags roboto` → só o aviso, fontes mantidas;
+- [x] Sem rede (`nmcli networking off`), `--tags roboto` → só o aviso, fontes mantidas;
       depois `nmcli networking on`.
+      Etapa verificada na VM (2026-10-01).
 
 ### Etapa 8 — Secure Boot desligado (opcional)
 - [ ] Restaurar o snapshot `limpo`, desligar o Secure Boot (`VBoxManage modifynvram alma10-aapi
