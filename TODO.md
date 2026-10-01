@@ -123,12 +123,14 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       Validado: toda a `dnf_packages_common` (menos VirtualBox) instala num container EL10.
 - [x] 🟡 `clamav-update` → `clamav-freshclam`, `vim` → `vim-enhanced`, `shellcheck` → `ShellCheck`
       (nomes reais no EL10; o `clamav-freshclam.service` usado no role `apps` vem desse pacote).
-- [ ] ✅ OK: `chromium`, `clamav`, `fastfetch`, `htop`, `hwinfo`, `lm_sensors`, `lynis`, `nodejs` (22),
+- [x] ✅ OK: `chromium`, `clamav`, `fastfetch`, `htop`, `hwinfo`, `lm_sensors`, `lynis`, `nodejs` (22),
       `nvtop`, `pipx`, `python3-pip`, `rkhunter`, `testdisk`, `tmux`, `tuptime`, `unrar`, `unzip`,
       `uv`, `fira-code-fonts`.
-- [ ] ✅ GNOME: `flatseal`, `gnome-tweaks` (EPEL). KDE: `ktorrent`, `plasma-sdk`, `kde-gtk-config`,
+- [x] ✅ GNOME: `flatseal`, `gnome-tweaks` (EPEL). KDE: `ktorrent`, `plasma-sdk`, `kde-gtk-config`,
       `konsole` (EPEL, Plasma 6.6). `ptyxis` é o terminal padrão do EL10 (AppStream).
-- [ ] ✅ Brave, VS Code, GitHub CLI: repos próprios, sem dependência de versão do Fedora. OK.
+- [x] ✅ Brave, VS Code, GitHub CLI: repos próprios, sem dependência de versão do Fedora. OK.
+      Os três itens confirmados (2026-10-01). Os pacotes KDE só foram validados em container
+      (a VM é GNOME).
 
 ## 6. Hardware ASUS — removido
 
