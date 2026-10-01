@@ -15,8 +15,10 @@ intel_media_packages:
   - intel-media-driver
 
 # Multimedia Packages
+# No "@multimedia": Workstation already has the group, and RPM Fusion's version of it adds
+# conditional freeworld packages (vlc-plugins-freeworld, libheif-freeworld) that are often built
+# against newer vlc-libs/libheif than EPEL ships, which breaks the whole transaction.
 multimedia_packages:
-  - "@multimedia"
   - gstreamer1-plugins-bad-freeworld
   - gstreamer1-plugins-ugly
   - gstreamer1-plugin-libav

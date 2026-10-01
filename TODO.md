@@ -78,6 +78,16 @@ Decisão de 2026-09-29: o alvo não tem GPU NVIDIA e Steam não será usado.
       `ffmpeg` 7.1 (trocou o `ffmpeg-free`), `libva-intel-driver`, `intel-media-driver`,
       `gstreamer1-plugins-bad-freeworld`, `-ugly` e `-libav`; 2ª execução `changed=0`.
 - [x] `gstreamer1-libav` → `gstreamer1-plugin-libav` (nome real no EL10).
+- [x] 🔴 `@multimedia` removido de `multimedia_packages` (2026-09-30, achado na VM). A versão do
+      RPM Fusion do grupo tem pacotes condicionais: com `vlc-libs` / `libheif` instalados (caso do
+      Workstation) puxa `vlc-plugins-freeworld` 3.0.24 (exige `vlc-libs` >= 3.0.24; EPEL tem 3.0.23)
+      e `libheif-freeworld` 1.20.2 (exige `libheif` = 1.20.2; EPEL tem 1.17.6) → depsolve error na
+      task `Codecs | Install Multimedia Group and Codecs`. A validação acima não pegou porque o
+      container não tinha esses pacotes. O grupo não acrescentava nada: o Workstation já instala o
+      grupo Multimedia do Alma, e os freeworld úteis já estão listados explicitamente.
+      Validado em container com `libheif` + `vlc-libs` instalados: instala, 2ª execução `changed=0`.
+- [ ] 🟡 Codecs freeworld do VLC e HEIF/HEVC (`vlc-plugins-freeworld`, `libheif-freeworld`): ficam
+      de fora. Reavaliar quando o EPEL estável alcançar as versões exigidas pelo RPM Fusion.
 
 ## 5. Pacotes do role `apps`
 
