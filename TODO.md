@@ -232,17 +232,20 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run0.l
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.log
 ```
-- [ ] O `update` passa direto (sem reboot pendente) e termina com `failed=0` e o banner
+- [x] O `update` passa direto (sem reboot pendente) e termina com `failed=0` e o banner
       `AAPI DEPLOYMENT COMPLETED SUCCESSFULLY!`.
-- [ ] O VirtualBox compila **e assina** o `vboxdrv` já na instalação (há `kernel-devel` do kernel em
+- [x] O VirtualBox compila **e assina** o `vboxdrv` já na instalação (há `kernel-devel` do kernel em
       uso). Aparece o aviso pedindo reboot + "Enroll MOK" (senha `alma-aapi`).
-- [ ] Reboot → tela azul do MokManager → **Enroll MOK** → Continue → senha `alma-aapi` → Reboot.
-      (Se não aparecer: `mokutil --list-new` antes do reboot deve listar a chave.)
-- [ ] `mokutil --test-key /var/lib/shim-signed/mok/MOK.der` → "is already enrolled".
-- [ ] `lsmod | grep vboxdrv` → carregado; `modinfo -F signer vboxdrv` →
+- [x] Reboot → tela azul do MokManager → **Enroll MOK** → Continue → senha `alma-aapi` → Reboot.
+      (Se não aparecer: `sudo mokutil --list-new` antes do reboot deve listar a chave.)
+- [x] `sudo mokutil --test-key /var/lib/shim-signed/mok/MOK.der` → "is already enrolled".
+      (`sudo` obrigatório nos dois comandos, confirmado na VM; no `--test-key` porque o `MOK.der`
+      fica num diretório `0700` de root.)
+- [x] `lsmod | grep vboxdrv` → carregado; `modinfo -F signer vboxdrv` →
       `<hostname> VirtualBox module signing`.
-- [ ] `systemctl status vboxdrv` ativo; `VBoxManage --version` → 7.2.x; usuário nos grupos
+- [x] `systemctl status vboxdrv` ativo; `VBoxManage --version` → 7.2.x; usuário nos grupos
       `vboxusers` e `vboxsf` (`id`, após novo login).
+      Etapa verificada na VM (2026-10-01).
 
 ### Etapa 4 — Conferência por role
 - [ ] **Repos:** `dnf repolist` → `crb`, `epel`, `rpmfusion-free-updates`, `rpmfusion-nonfree-updates`,
