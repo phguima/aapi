@@ -290,13 +290,14 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 
 ### Etapa 6 — Limpeza de kernels e rebuild do `vboxdrv` em outro kernel
 - [x] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
-- [ ] No teste 2, instalar também o `kernel-devel` da versão antiga
+- [x] No teste 2, instalar também o `kernel-devel` da versão antiga
       (`sudo dnf install kernel-<ver> kernel-devel-<ver>`). Ao dar boot nela, o `vboxdrv.sh` deve
       compilar e **assinar** o módulo para esse kernel: `lsmod | grep vboxdrv` e
       `modinfo -F signer vboxdrv` (cobre o caso "entrou kernel novo" sem esperar um update real).
-- [ ] Após instalar o kernel antigo, uma execução **completa** para no reboot gate (esperado: sim,
+- [x] Após instalar o kernel antigo, uma execução **completa** para no reboot gate (esperado: sim,
       o `needs-restarting -r` conta qualquer kernel instalado depois do boot, mesmo mais antigo).
       Os testes com `--tags kernel` não passam pelo gate, que só roda com a tag `update`.
+      Etapa verificada na VM (2026-10-01).
 
 ### Etapa 7 — Roboto: atualização e GitHub fora
 - [ ] Simular versão antiga: `echo v0 | sudo tee /usr/local/share/fonts/roboto/.version` e
