@@ -248,22 +248,24 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.l
       Etapa verificada na VM (2026-10-01).
 
 ### Etapa 4 — Conferência por role
-- [ ] **Repos:** `dnf repolist` → `crb`, `epel`, `rpmfusion-free-updates`, `rpmfusion-nonfree-updates`,
+- [x] **Repos:** `dnf repolist` → `crb`, `epel`, `rpmfusion-free-updates`, `rpmfusion-nonfree-updates`,
       `virtualbox`, `brave-browser`, `code`, `gh-cli`; `dnf repolist --enabled | grep -i debug` → vazio.
-- [ ] **Multimídia:** `rpm -q ffmpeg` (e `ffmpeg-free` ausente). A GPU da VM (VMSVGA) não é Intel,
+- [x] **Multimídia:** `rpm -q ffmpeg` (e `ffmpeg-free` ausente). A GPU da VM (VMSVGA) não é Intel,
       então os drivers Intel devem ter sido pulados.
-- [ ] **Apps:** `rpm -q chromium clamav 7zip ShellCheck vim-enhanced uv brave-browser code gh`;
+- [x] **Apps:** `rpm -q chromium clamav 7zip ShellCheck vim-enhanced uv brave-browser code gh`;
       `systemctl is-active clamav-freshclam`; `flatpak list --app` com os apps de `flatpak_apps_*`.
-- [ ] **Shell:** `echo $SHELL` → zsh (novo login); tema `kali-like-alt`; `grep -A3 "BEGIN API" ~/.zshrc`
+- [x] **Shell:** `echo $SHELL` → zsh (novo login); tema `kali-like-alt`; `grep -A3 "BEGIN API" ~/.zshrc`
       com o conteúdo do vault; aliases presentes (e nenhum `thevoid`).
-- [ ] **Hostname:** igual ao anotado na etapa 0.
-- [ ] **GRUB:** `grep -E "GRUB_TIMEOUT|GRUB_GFXMODE" /etc/default/grub`; `ls -l /boot/grub2/grub.cfg`
+- [x] **Hostname:** igual ao anotado na etapa 0.
+- [x] **GRUB:** `grep -E "GRUB_TIMEOUT|GRUB_GFXMODE" /etc/default/grub`;
+      `sudo ls -l /boot/grub2/grub.cfg` (`sudo` obrigatório: `/boot/grub2` é `0700` de root)
       com data da execução; menu no boot espera 5 s.
-- [ ] **Fontes:** `cat /usr/local/share/fonts/roboto/.version` → versão atual;
+- [x] **Fontes:** `cat /usr/local/share/fonts/roboto/.version` → versão atual;
       `fc-list : family | grep -c '^Roboto'` → 8; `fc-list | grep -i "fira code"`.
-- [ ] **Ptyxis:** abre com 120x35, cursor sublinhado, Fira Code 10, opacidade 0.95.
-- [ ] **Cedilha** (após logout/login): no editor de texto e no Brave, `'` + `c` → `ç` (e `'` + `C` → `Ç`).
-- [ ] **AI tools:** `claude --version`; `pipx list` com markitdown, notebooklm-py, pdf2docx.
+- [x] **Ptyxis:** abre com 120x35, cursor sublinhado, Fira Code 10, opacidade 0.95.
+- [x] **Cedilha** (após logout/login): no editor de texto e no Brave, `'` + `c` → `ç` (e `'` + `C` → `Ç`).
+- [x] **AI tools:** `claude --version`; `pipx list` com markitdown, notebooklm-py, pdf2docx.
+      Etapa verificada na VM (2026-10-01).
 
 ### Etapa 5 — Idempotência
 ```bash
