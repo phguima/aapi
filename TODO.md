@@ -145,8 +145,9 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
       Correção da auditoria: no EL10 `/etc/grub2-efi.cfg` já é symlink para esse arquivo, então em
       UEFI o handler antigo funcionava; a troca deixa explícito e cobre boot BIOS (sem
       `grub2-efi-x64` o symlink não existe e o antigo criaria um arquivo solto em `/etc`).
-- [ ] 🟡 O EL usa BLS + `grubby`; parâmetros de kernel devem ir via `grubby`, não `GRUB_CMDLINE_LINUX`
+- [x] 🟡 O EL usa BLS + `grubby`; parâmetros de kernel devem ir via `grubby`, não `GRUB_CMDLINE_LINUX`
       (hoje o playbook não mexe no cmdline, então só fica o aviso).
+      Ciente (2026-10-01): nada a mudar enquanto o playbook não mexer no cmdline.
 
 ## 8. Resto do código — sem mudança necessária
 
