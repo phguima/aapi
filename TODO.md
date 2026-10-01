@@ -272,9 +272,10 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.l
 ```bash
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.log
 ```
-- [ ] Não para no reboot gate (nada novo desde o boot).
-- [ ] `changed=` só nas tasks sabidamente não idempotentes: as 3 do Ptyxis
+- [x] Não para no reboot gate (nada novo desde o boot).
+- [x] `changed=` só nas tasks sabidamente não idempotentes: as 3 do Ptyxis
       (`GNOME | Set PTYxis ...`, sem `changed_when`, herdadas do AFPI). Qualquer outra é bug.
+      Idempotência verificada na VM (2026-10-01).
 - [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
       / `dconf read` antes de escrever).
 - [ ] `--check` com tudo já instalado (repos presentes, então o resultado passa a valer):
