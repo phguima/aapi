@@ -219,22 +219,13 @@ git clone https://github.com/phguima/aapi && cd aapi && ./bootstrap.sh
       com `No package ffmpeg available` (`rpm -qa | grep -i rpmfusion` vazio). O `--check` foi
       movido para a etapa 5, depois do setup completo.
 
-### Etapa 2 — 1ª execução: atualizar e parar
-O gate (`dnf needs-restarting -r`) **não** para por qualquer update: só quando algum destes foi
-instalado/atualizado depois do boot — `kernel`, `kernel-core`, `kernel-rt`, `glibc`,
-`linux-firmware`, `systemd`, `dbus`, `dbus-broker`, `dbus-daemon`, `microcode_ctl` (lista do
-`python3-dnf-plugins-core` 4.7.0 do EL10, mais o que houver em
-`/etc/dnf/plugins/needs-restarting.d/*.conf`). Mesmo com a ISO já no kernel mais recente, para se
-um dos outros vier. Prever antes de rodar:
+### Etapa 2 — 1ª execução: atualizar e reiniciar se necessário
 ```bash
-dnf list --upgrades kernel kernel-core glibc linux-firmware systemd dbus dbus-broker microcode_ctl
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run0.log
 ```
-- [ ] Se o `dnf list --upgrades` listou algo: o `update` atualiza e o playbook **para** com
-      "needs a REBOOT before continuing" (`failed=0`, sem os outros roles, sem o banner final).
-      Se veio vazio: não para e segue direto para a etapa 3 (comportamento correto, nada do
-      sistema base mudou).
-- [ ] Reiniciar; `uname -r` → kernel mais recente instalado.
+- [ ] Se o update exigir reboot, o playbook **para** com "needs a REBOOT before continuing"
+      (sem os outros roles, sem o banner final). Se não exigir, segue direto (etapa 3).
+- [ ] Se parou: reiniciar; `uname -r` → kernel mais recente.
 
 ### Etapa 3 — 2ª execução: setup completo, registro da chave e VirtualBox
 ```bash
