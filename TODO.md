@@ -131,8 +131,8 @@ Faltando no EL10 (nem EPEL nem RPM Fusion):
 - [x] ✅ GNOME: `flatseal`, `gnome-tweaks` (EPEL). KDE: `ktorrent`, `plasma-sdk`, `kde-gtk-config`,
       `konsole` (EPEL, Plasma 6.6). `ptyxis` é o terminal padrão do EL10 (AppStream).
 - [x] ✅ Brave, VS Code, GitHub CLI: repos próprios, sem dependência de versão do Fedora. OK.
-      Os três itens confirmados (2026-10-01). Os pacotes KDE só foram validados em container
-      (a VM é GNOME).
+      Os três itens confirmados (2026-10-01). A VM era **KDE**: os pacotes GNOME (`flatseal`,
+      `gnome-tweaks`) só foram validados em container.
 
 ## 6. Hardware ASUS — removido
 
@@ -209,6 +209,8 @@ VBoxManage modifynvram $VM secureboot --enable
 ```
 (Pela interface: Sistema → Habilitar EFI + Habilitar Secure Boot → "Redefinir chaves para o padrão".)
 - [x] Instalar com o ambiente **Workstation** (GNOME), usuário administrador (`wheel`).
+      Feito com a edição **KDE** (2026-10-01): por isso as tasks GNOME/Ptyxis foram puladas na VM
+      e validadas só em container.
 - [x] Na VM: `mokutil --sb-state` → `SecureBoot enabled`. Anotar `hostname` e `uname -r`.
 - [x] Snapshot limpo: `VBoxManage snapshot alma10-aapi take limpo` (VM desligada).
       Etapa verificada (2026-10-01).
@@ -269,6 +271,8 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run1.l
 - [x] **Fontes:** `cat /usr/local/share/fonts/roboto/.version` → versão atual;
       `fc-list : family | grep -c '^Roboto'` → 8; `fc-list | grep -i "fira code"`.
 - [x] **Ptyxis:** abre com 120x35, cursor sublinhado, Fira Code 10, opacidade 0.95.
+      Não testado na VM (KDE). Validado em container (2026-10-01) com sessão D-Bus do usuário e
+      `sudo`: os valores chegam ao dconf do usuário. Abrir o Ptyxis de fato fica para um host GNOME.
 - [x] **Cedilha** (após logout/login): no editor de texto e no Brave, `'` + `c` → `ç` (e `'` + `C` → `Ç`).
 - [x] **AI tools:** `claude --version`; `pipx list` com markitdown, notebooklm-py, pdf2docx.
       Etapa verificada na VM (2026-10-01).
@@ -280,9 +284,13 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 - [x] Não para no reboot gate (nada novo desde o boot).
 - [x] `changed=` só nas tasks sabidamente não idempotentes: as 3 do Ptyxis
       (`GNOME | Set PTYxis ...`, sem `changed_when`, herdadas do AFPI). Qualquer outra é bug.
-      Idempotência verificada na VM (2026-10-01).
-- [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
+      Idempotência verificada na VM (2026-10-01). Na VM KDE as 3 do Ptyxis são puladas.
+- [x] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
       / `dconf read` antes de escrever).
+      Feito (2026-10-01): cada valor é lido antes e depois da escrita e só conta como `changed`
+      se mudou. Validado em container (sessão D-Bus + `sudo`): 1ª execução `changed=3`, 2ª
+      `changed=0`; alterando 2 valores à mão, só esses 2 itens voltam e a seguinte dá `changed=0`.
+      Agora a idempotência esperada é `changed=0` em tudo, também no GNOME.
 - [x] `--check` com tudo já instalado (repos presentes, então o resultado passa a valer):
       `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check` → esperado
       `failed=0`. Anotar aqui cada task que falhar (só a etapa da Roboto foi validada em check
@@ -324,4 +332,4 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 5. ~~Seções 7 e 2 (6 já feita)~~ ✅ feito.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
 7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
-   Restam só os opcionais 🟡: `changed_when` no Ptyxis (etapa 5) e os freeworld do VLC/HEIF (seção 4).
+   Resta só o opcional 🟡 dos freeworld do VLC/HEIF (seção 4).

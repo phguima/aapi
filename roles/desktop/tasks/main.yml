@@ -185,9 +185,18 @@
   tags: [desktop, kde, konsole]
 
 # --- GNOME Specific Configuration (PTYxis) ---
+# Each setting is read before and after the write, so a task only reports "changed" when the
+# value really changed (rewriting the same value is a no-op). Comparing the read-back values
+# also avoids formatting the expected GVariant by hand (e.g. "uint32 120" for the columns).
 - name: GNOME | Set PTYxis terminal window size and behavior
-  ansible.builtin.command: "gsettings set org.gnome.Ptyxis {{ item.key }} {{ item.value }}"
+  ansible.builtin.shell: |
+    set -e
+    before=$(gsettings get org.gnome.Ptyxis {{ item.key }})
+    gsettings set org.gnome.Ptyxis {{ item.key }} {{ item.value }}
+    [ "$before" = "$(gsettings get org.gnome.Ptyxis {{ item.key }})" ] || echo changed
   become_user: "{{ user_name }}"
+  register: ptyxis_gsettings
+  changed_when: "'changed' in ptyxis_gsettings.stdout"
   loop:
     - { key: "restore-window-size", value: "{{ ptyxis_restore_window_size }}" }
     - { key: "default-columns", value: "{{ ptyxis_default_columns }}" }
@@ -196,8 +205,14 @@
   tags: [desktop, gnome, ptyxis]
 
 - name: GNOME | Set PTYxis cursor and font settings
-  ansible.builtin.command: "dconf write /org/gnome/Ptyxis/{{ item.key }} \"{{ item.value }}\""
+  ansible.builtin.shell: |
+    set -e
+    before=$(dconf read /org/gnome/Ptyxis/{{ item.key }})
+    dconf write /org/gnome/Ptyxis/{{ item.key }} "{{ item.value }}"
+    [ "$before" = "$(dconf read /org/gnome/Ptyxis/{{ item.key }})" ] || echo changed
   become_user: "{{ user_name }}"
+  register: ptyxis_dconf
+  changed_when: "'changed' in ptyxis_dconf.stdout"
   loop:
     - { key: "cursor-shape", value: "'{{ ptyxis_cursor_shape }}'" }
     - { key: "cursor-blink-mode", value: "'{{ ptyxis_cursor_blink_mode }}'" }
@@ -215,8 +230,15 @@
   tags: [desktop, gnome, ptyxis]
 
 - name: GNOME | Set PTYxis transparency
-  ansible.builtin.command: "dconf write /org/gnome/Ptyxis/Profiles/{{ ptyxis_default_uuid.stdout }}/opacity {{ ptyxis_opacity }}"
+  ansible.builtin.shell: |
+    set -e
+    key=/org/gnome/Ptyxis/Profiles/{{ ptyxis_default_uuid.stdout }}/opacity
+    before=$(dconf read "$key")
+    dconf write "$key" {{ ptyxis_opacity }}
+    [ "$before" = "$(dconf read "$key")" ] || echo changed
   become_user: "{{ user_name }}"
+  register: ptyxis_opacity_result
+  changed_when: "'changed' in ptyxis_opacity_result.stdout"
   when: 
     - is_gnome 
     - user_name != 'root'
