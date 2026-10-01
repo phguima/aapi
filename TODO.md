@@ -278,10 +278,11 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       Idempotência verificada na VM (2026-10-01).
 - [ ] 🟡 Opcional depois: dar `changed_when` real às 3 tasks do Ptyxis (comparar com `gsettings get`
       / `dconf read` antes de escrever).
-- [ ] `--check` com tudo já instalado (repos presentes, então o resultado passa a valer):
+- [x] `--check` com tudo já instalado (repos presentes, então o resultado passa a valer):
       `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass --check` → esperado
       `failed=0`. Anotar aqui cada task que falhar (só a etapa da Roboto foi validada em check
       mode; tasks que dependem de `register` de comando podem quebrar).
+      Verificado na VM (2026-10-01): `failed=0`, nenhuma task quebrou.
 
 ### Etapa 6 — Limpeza de kernels e rebuild do `vboxdrv` em outro kernel
 - [ ] Seguir o roteiro da seção 2 (`kernel_maintenance.yml:40`): testes 1, 2 (kernel em uso) e 3.
