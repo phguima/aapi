@@ -17,18 +17,20 @@ distro: o EL10 usa **dnf4** (4.20), CRB + EPEL + RPM Fusion EL e `ansible-core` 
 
 ## Estado do trabalho
 
-`TODO.md` (em português) é a auditoria do port e a lista de tarefas. O usuário costuma pedir
-"mostre o todo" e espera um status **compacto por seção**. Ao concluir um item, marcar `[x]` com a
-nota de validação no mesmo commit.
+`TODO.md` (em português) tem **só o que falta**. O histórico (auditoria do port, roteiro da VM,
+port do AFPI e como cada item foi validado) foi tirado dele em 2026-10-04 e fica no git:
+`git show e4de25f:TODO.md`. O usuário costuma pedir "mostre o todo" e espera um status
+**compacto por seção**. Ao concluir um item, removê-lo do `TODO.md` e registrar a validação na
+mensagem do commit; tarefa nova entra no `TODO.md` até ser feita.
 
 Status em 2026-10-01: tudo feito, inclusive o roteiro de testes na VM (seção 11, EFI + Secure
-Boot). Resta só o item opcional 🟡 dos codecs freeworld do VLC/HEIF (seção 4), bloqueado até o EPEL
+Boot). Resta só o item opcional 🟡 dos codecs freeworld do VLC/HEIF, bloqueado até o EPEL
 alcançar as versões do RPM Fusion. A VM de teste era **KDE**: o que é só do GNOME (Ptyxis) foi
 validado só em container.
 
 Entre 2026-10-03 e 2026-10-04 foram portadas as melhorias do AFPI até a versão 2.9.0 (seção 12
-do `TODO.md`; a lista `PORTAR_DO_AFPI.md` foi apagada e fica no histórico do git), conferidas na VM
-e publicadas como **v1.1.0** (tag e release). Ao portar algo novo do AFPI, registrar na seção 12.
+do `TODO.md` histórico; a lista `PORTAR_DO_AFPI.md` foi apagada e também fica no git), conferidas
+na VM e publicadas como **v1.1.0** (tag e release). Algo novo a portar do AFPI entra no `TODO.md`.
 
 ## Git
 
@@ -55,7 +57,8 @@ Validar em container podman `docker.io/library/almalinux:10`, **duas vezes** (id
 
 ## VM de teste
 
-O usuário roda as etapas da VM (seção 11 do `TODO.md`) e manda os resultados como screenshots em
+O usuário roda as conferências na VM (roteiro de referência: seção 11 do `TODO.md` histórico) e
+manda os resultados como screenshots em
 `~/Pictures/Screenshots`. Os nomes dos arquivos mudam: listar o diretório e pegar os mais novos.
 
 ## Particularidades do AlmaLinux 10
