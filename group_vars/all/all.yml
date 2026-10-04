@@ -3,6 +3,14 @@
 dnf_max_parallel_downloads: 15
 dnf_fastestmirror: "True"
 
+# Git (~/.gitconfig of the user who runs the playbook). Empty name/e-mail = leave them as they are.
+# ./bootstrap.sh asks for both and saves them to host_vars/127.0.0.1.yml.
+git_user_name: ""
+git_user_email: ""
+git_config_defaults:
+  init.defaultBranch: main
+  pull.ff: only
+
 # GRUB Settings
 grub_timeout: 5
 grub_gfxmode: "1920x1080x32,1280x720x32,auto"

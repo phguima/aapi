@@ -361,6 +361,27 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       só do usuário; ícone 512×512 e `.desktop` com `desktop-file-validate` sem erros); 2ª execução
       e `--check` com `changed=0`. O `desktop-file-utils` vem com o `gnome-shell` e o
       `plasma-workspace` (conferido com `dnf install --assumeno`).
+- [x] Bloco 2, git e `gh` (itens 5 e 6 do `PORTAR_DO_AFPI.md`), feito em 2026-10-04:
+      - `.gitignore` novo (o AAPI não tinha), com `host_vars/`, `*.retry`, `*.pyc` e `.vault_pass`.
+      - `bootstrap.sh`, passo 4: pergunta `user.name` e `user.email` (Enter mantém o valor salvo ou
+        o do `~/.gitconfig`; vazio = não mexe; e-mail validado; sem terminal não pergunta) e grava em
+        `host_vars/127.0.0.1.yml` com PyYAML. Diferente do AFPI: **mescla** com o que já está no
+        arquivo, em vez de sobrescrever, e não pergunta o hostname.
+      - `all.yml`: `git_user_name`/`git_user_email` vazios e `git_config_defaults`
+        (`init.defaultBranch=main`, `pull.ff=only`). Role `common`, tag `git`: `git_config` no
+        `{{ user_home }}/.gitconfig` como o usuário; identidade pulada quando vazia.
+      - `site.yml`: `GitHub CLI | Check login` (`slurp` do `~/.config/gh/hosts.yml`) e
+        `GitHub CLI | Remind to log in` quando não há `github.com:`. README: bootstrap, seção
+        "GitHub CLI login" e a tag `git`.
+      Validado (2026-10-04) em container `almalinux:10` (`expect` para simular o terminal): bootstrap
+      recusa e-mail inválido, grava `Ana "Q" O'Brien`; 2ª execução só com Enter mantém tudo e
+      preserva uma chave extra (`antigravity_ide_dir`); sem terminal só avisa; `git status` mostra
+      `host_vars/` como ignorado; o `python3-pyyaml` vem como dependência do `ansible-core`.
+      Playbook `--tags git`: `--check` antes relata as mudanças sem criar o `~/.gitconfig`; 1ª
+      execução grava o `~/.gitconfig` do usuário (dono dele; `/root/.gitconfig` não criado; o git lê
+      o nome com aspas certo), 2ª execução e `--check` com `changed=0`; identidade vazia → só os
+      padrões; lembrete aparece sem `hosts.yml` e com `hosts.yml` vazio, some com `github.com:`;
+      `shellcheck` limpo. `community.general` 11.x tem o `git_config` com `scope: file`.
 
 ### Conferência final na máquina do trabalho (ao terminar o port)
 
@@ -411,5 +432,5 @@ entra aqui ao ser portado.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
 7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
    Resta só o opcional 🟡 dos freeworld do VLC/HEIF (seção 4).
-8. Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`): bloco 1 (zsh e Antigravity) ✅
-   feito; falta o bloco 2 (git e `gh`) e os opcionais.
+8. Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`): blocos 1 (zsh e Antigravity) e 2
+   (git e `gh`) ✅ feitos; faltam os opcionais (7 e 9) e a conferência final na máquina do trabalho.

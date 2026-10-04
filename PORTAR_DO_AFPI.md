@@ -79,7 +79,7 @@ reiniciar em vez de dizer se o sistema precisa de reboot. O `-r` não precisa de
 alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y; dnf needs-restarting -r"
 ```
 
-## 5. Identidade do git perguntada no `bootstrap.sh`
+## ~~5. Identidade do git perguntada no `bootstrap.sh`~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `b115eb3` (bootstrap), `d4f17c3` (role `common`), `112b94a` (docs). **Situação no
 AAPI:** o playbook não mexe no `~/.gitconfig`.
@@ -106,7 +106,7 @@ Adaptações no AAPI:
   `scope: file`/`file:` já existe nessa série, mas conferir no container.
 - README: a explicação do bootstrap e a tag `git` na tabela de tags.
 
-## 6. Lembrete de login do `gh` no fim do play
+## ~~6. Lembrete de login do `gh` no fim do play~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `2c6231d`. **Situação no AAPI:** instala o `gh` e não diz nada sobre o login.
 

@@ -54,7 +54,65 @@ if [ ! -f "group_vars/all/all.yml" ]; then
     exit 1
 fi
 
-# 4. Vault Check
+# 4. Machine settings: git identity
+# Asked here, not in the playbook, so ansible-playbook never stops for input. The answers go to
+# host_vars/127.0.0.1.yml (git-ignored, machine-specific), which overrides group_vars/all.
+# The file is read and written with PyYAML (a dependency of ansible-core) so names with quotes
+# survive; other keys already in it are kept.
+HOST_VARS="host_vars/127.0.0.1.yml"
+
+# Prints the value of key $1 saved in $HOST_VARS (empty when missing)
+host_var() {
+    [ -f "$HOST_VARS" ] || return 0
+    python3 -c 'import sys, yaml; v = (yaml.safe_load(open(sys.argv[1])) or {}).get(sys.argv[2]); print(v if v is not None else "")' \
+        "$HOST_VARS" "$1"
+}
+
+# ask VAR "Label" default: reads into VAR, Enter keeps the default
+ask() {
+    local answer
+    read -r -p "$(echo -e "${C_BLUE}==>${C_RESET} $2 [$3]: ")" answer
+    printf -v "$1" '%s' "${answer:-$3}"
+}
+
+git_name="" git_email=""  # set by ask()
+if [ -t 0 ]; then
+    # Git identity: defaults to what was saved before, then to the current ~/.gitconfig.
+    # Leaving both empty means the playbook does not touch user.name/user.email.
+    saved_git_name=$(host_var git_user_name)
+    saved_git_email=$(host_var git_user_email)
+    ask git_name "Git user.name (empty to skip)" "${saved_git_name:-$(git config --global user.name 2>/dev/null || true)}"
+    while true; do
+        ask git_email "Git user.email (empty to skip)" "${saved_git_email:-$(git config --global user.email 2>/dev/null || true)}"
+        if [ -z "$git_email" ] || [[ "$git_email" =~ ^[^[:space:]@]+@[^[:space:]@]+$ ]]; then
+            break
+        fi
+        error "Invalid e-mail '${git_email}'."
+    done
+
+    mkdir -p host_vars
+    python3 - "$HOST_VARS" "$git_name" "$git_email" <<'PY'
+import os, sys, yaml
+path, name, email = sys.argv[1:]
+data = {}
+if os.path.exists(path):
+    with open(path) as f:
+        data = yaml.safe_load(f) or {}
+data.update({"git_user_name": name, "git_user_email": email})
+with open(path, "w") as f:
+    f.write("---\n# Written by bootstrap.sh: settings for this machine only (not tracked by git).\n")
+    yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True, default_flow_style=False)
+PY
+    if [ -n "$git_name" ] || [ -n "$git_email" ]; then
+        success "Git identity '${git_name} <${git_email}>' saved to ${HOST_VARS}."
+    else
+        warn "No git identity saved: the playbook leaves user.name/user.email as they are."
+    fi
+else
+    warn "No terminal: git identity not asked. The playbook uses ${HOST_VARS} if it exists."
+fi
+
+# 5. Vault Check
 if [ -f "group_vars/all/secrets.yml" ]; then
     if ! grep -q "\$ANSIBLE_VAULT" "group_vars/all/secrets.yml"; then
         warn "Note: 'group_vars/all/secrets.yml' is NOT encrypted. Consider running:"
@@ -62,7 +120,7 @@ if [ -f "group_vars/all/secrets.yml" ]; then
     fi
 fi
 
-# 5. Final Instructions
+# 6. Final Instructions
 echo ""
 prompt "Bootstrap complete! You can now run the AAPI playbook using:"
 echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass${C_RESET}"

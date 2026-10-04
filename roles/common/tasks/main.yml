@@ -31,6 +31,32 @@
     state: present
   tags: [shell, omz, zsh, dnf]
 
+# --- Git ---
+# Written to the user's ~/.gitconfig as that user (explicit file, so it does not depend on the
+# HOME that sudo passes). Identity comes from host_vars (bootstrap.sh); empty values are skipped.
+- name: Git | Set user identity
+  community.general.git_config:
+    scope: file
+    file: "{{ user_home }}/.gitconfig"
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+  become_user: "{{ user_name }}"
+  loop:
+    - { key: user.name, value: "{{ git_user_name }}" }
+    - { key: user.email, value: "{{ git_user_email }}" }
+  when: item.value | length > 0
+  tags: [git]
+
+- name: Git | Set default options
+  community.general.git_config:
+    scope: file
+    file: "{{ user_home }}/.gitconfig"
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+  become_user: "{{ user_name }}"
+  loop: "{{ git_config_defaults | dict2items }}"
+  tags: [git]
+
 - name: ZSH | Ensure Oh-My-Zsh is installed for users
   ansible.builtin.shell:
     cmd: "curl -fsSL {{ omz_install_script_url }} | sh -s -- --unattended --keep-zshrc"

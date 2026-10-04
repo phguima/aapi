@@ -1,0 +1,7 @@
+# Ansible temporary files
+*.retry
+*.pyc
+.vault_pass
+
+# Machine-specific settings written by bootstrap.sh (git identity)
+host_vars/

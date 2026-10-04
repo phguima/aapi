@@ -19,6 +19,25 @@
     - { role: ai_tools, tags: [ai, gemini] }
 
   post_tasks:
+    # gh login is interactive (browser + token in the keyring), so the playbook only reminds.
+    # hosts.yml lists the logged-in hosts even when the token itself lives in the keyring, and reading
+    # it does not need the user's D-Bus session (gh auth status run through sudo would).
+    - name: GitHub CLI | Check login
+      ansible.builtin.slurp:
+        src: "{{ user_home }}/.config/gh/hosts.yml"
+      register: gh_hosts
+      failed_when: false
+      tags: [always]
+
+    - name: GitHub CLI | Remind to log in
+      ansible.builtin.debug:
+        msg:
+          - "The GitHub CLI is not logged in. As {{ user_name }}, run:"
+          - "  gh auth login --hostname github.com --git-protocol https --web"
+          - "  gh auth setup-git"
+      when: "'github.com:' not in (gh_hosts.content | default('') | b64decode)"
+      tags: [always]
+
     - name: AAPI | Final Status
       ansible.builtin.debug:
         msg: 
