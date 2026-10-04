@@ -337,7 +337,7 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       o `vboxdrv` carrega sem assinatura.
       Etapa verificada na VM (2026-10-01).
 
-## 12. Port das melhorias do AFPI (`PORTAR_DO_AFPI.md`)
+## 12. Port das melhorias do AFPI (`PORTAR_DO_AFPI.md`, apagado em 2026-10-04)
 
 - [x] Bloco 1, zsh e Antigravity (itens 1, 2, 3, 4 e 8 do `PORTAR_DO_AFPI.md`), feito em 2026-10-04:
       - `zsh_aliases` virou `zsh_aliases_common` (todo `.zshrc`, root incluído) e
@@ -422,44 +422,49 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 ### Conferência final na máquina do trabalho (ao terminar o port)
 
 Fazer uma vez, depois de portar todos os blocos, com o repo atualizado (`git pull`). Cada bloco
-entra aqui ao ser portado.
+entra aqui ao ser portado. **Conferida pelo usuário na VM em 2026-10-04: todos os itens ok.**
 
-- [ ] **Bootstrap** (bloco 2): `./bootstrap.sh` pergunta `user.name` e `user.email` (Enter mantém o
+- [x] **Bootstrap** (bloco 2): `./bootstrap.sh` pergunta `user.name` e `user.email` (Enter mantém o
       que está no `~/.gitconfig`; e-mail inválido é recusado); `cat host_vars/127.0.0.1.yml` mostra
       os dois; `git status` não lista o `host_vars/` (está no `.gitignore`).
-- [ ] **Execução:** `ansible-playbook -i inventory.ini site.yml -K`. Se o reboot gate
+- [x] **Execução:** `ansible-playbook -i inventory.ini site.yml -K`. Se o reboot gate
       parar o play, reiniciar e rodar de novo. Anotar o `PLAY RECAP` (`failed=0`).
-- [ ] **Reboot gate** (item 7): numa atualização que traga kernel novo, o play para pedindo reboot;
+- [x] **Reboot gate** (item 7): numa atualização que traga kernel novo, o play para pedindo reboot;
       depois do reboot, `uname -r` é o kernel novo e o play passa do `update`.
-- [ ] **Idempotência:** rodar de novo → `changed=0`; depois `--check` → `failed=0`.
-- [ ] **`.zshrc` do root** (bloco 1): `sudo cat /root/.zshrc` → bloco de aliases só com `zshconfig`,
+- [x] **Idempotência:** rodar de novo → `changed=0`; depois `--check` → `failed=0`.
+- [x] **`.zshrc` do root** (bloco 1): `sudo cat /root/.zshrc` → bloco de aliases só com `zshconfig`,
       `ohmyzsh`, `lls`, `llsa`, `clean-cache`; sem o bloco `API CONFIGURATION`; sem `alias
       antigravity=`.
-- [ ] **`.zshrc` do usuário** (bloco 1): `source ~/.zshrc`; `alias antigravity-ide` aponta para
+- [x] **`.zshrc` do usuário** (bloco 1): `source ~/.zshrc`; `alias antigravity-ide` aponta para
       `~/wks/tools/antigravity/antigravity`; `alias full-update` termina com
       `dnf needs-restarting -r`; sem vault, o `.zshrc` não tem o bloco `API CONFIGURATION`
       (`grep -c "API CONFIGURATION" ~/.zshrc` → `0`; um bloco de execução antiga é removido).
-- [ ] **Instalação do Antigravity IDE**: sem a IDE em `~/wks/tools/antigravity`, o play baixa o
+- [x] **Instalação do Antigravity IDE**: sem a IDE em `~/wks/tools/antigravity`, o play baixa o
       AppImage (`ls -l ~/wks/tools/antigravity/antigravity`, ~189 MB) e o `fuse-libs`; com ela lá,
       não baixa. O login no Antigravity volta do navegador para o app (`MimeType` do `.desktop`).
-- [ ] **Antigravity IDE** (bloco 1): `cd ~ && antigravity-ide` abre a IDE com o log no terminal; pelo
+- [x] **Antigravity IDE** (bloco 1): `cd ~ && antigravity-ide` abre a IDE com o log no terminal; pelo
       menu, o Antigravity aparece com o ícone, abre, e a janela fica agrupada no mesmo ícone da
       dock/barra de tarefas (se aparecer um ícone genérico separado, conferir o `app_id` e ajustar
       o `StartupWMClass`).
-- [ ] **`full-update`** (bloco 1): termina com a resposta do `needs-restarting -r` (reboot necessário
+- [x] **`full-update`** (bloco 1): termina com a resposta do `needs-restarting -r` (reboot necessário
       ou não).
-- [ ] **Limpeza do `agy` do root** (bloco 1, à mão): conferir com `sudo ls /root/.local/bin` e
-      `sudo grep -n local/bin /root/.zshrc /root/.bashrc /root/.bash_profile`; depois rodar os
-      comandos do item 2 do `PORTAR_DO_AFPI.md`. O `agy` do usuário continua funcionando
+- [x] **Limpeza do `agy` do root** (bloco 1, à mão): conferir com `sudo ls /root/.local/bin` e
+      `sudo grep -n local/bin /root/.zshrc /root/.bashrc /root/.bash_profile`; depois rodar (era o item 2 do
+      `PORTAR_DO_AFPI.md`, já apagado):
+      `sudo sed -i '\|^export PATH="/root/.local/bin:\$PATH"$|d' /root/.zshrc /root/.bashrc /root/.bash_profile`,
+      `sudo rm /root/.local/bin/agy && sudo rmdir /root/.local/bin` e
+      `sudo rm -r /root/.cache/antigravity`. O `agy` do usuário continua funcionando
       (`agy --version`).
-- [ ] **Git** (bloco 2): `git config --global --list` → `user.name`, `user.email`,
+- [x] **Git** (bloco 2): `git config --global --list` → `user.name`, `user.email`,
       `init.defaultBranch=main`, `pull.ff=only`; `ls -l ~/.gitconfig` com o usuário como dono;
       `sudo ls /root/.gitconfig` → não existe.
-- [ ] **GitHub CLI** (bloco 2): sem login, o fim do play mostra `GitHub CLI | Remind to log in`;
+- [x] **GitHub CLI** (bloco 2): sem login, o fim do play mostra `GitHub CLI | Remind to log in`;
       depois de `gh auth login --hostname github.com --git-protocol https --web` e
       `gh auth setup-git`, a execução seguinte não mostra o lembrete.
-- [ ] **Fechamento:** marcar os itens acima, apagar o `PORTAR_DO_AFPI.md` (tudo portado), atualizar
+- [x] **Fechamento:** marcar os itens acima, apagar o `PORTAR_DO_AFPI.md` (tudo portado), atualizar
       versão e "Validation" no README e criar a tag/release (item 9 do `PORTAR_DO_AFPI.md`).
+      Feito em 2026-10-04: `PORTAR_DO_AFPI.md` apagado (fica no histórico do git), README em
+      1.1.0, tag `v1.1.0` e release.
 
 ---
 
@@ -473,6 +478,5 @@ entra aqui ao ser portado.
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
 7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
    Resta só o opcional 🟡 dos freeworld do VLC/HEIF (seção 4).
-8. Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`): blocos 1 (zsh e Antigravity) e 2
-   (git e `gh`) e o item 7 (reboot gate com kernels) ✅ feitos; faltam a conferência final na
-   máquina do trabalho e o item 9 (tag e release).
+8. ~~Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`)~~ ✅ feito (2026-10-04): blocos 1
+   e 2, item 7, conferência final na VM e versão 1.1.0 (tag e release).

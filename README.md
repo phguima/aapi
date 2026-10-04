@@ -9,10 +9,11 @@ AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a
 
 ## 📊 Project Status
 
-*   **Current Version:** 1.0.0 (port of AFPI 2.6.0)
-*   **Last Update:** September 29, 2026
+*   **Current Version:** 1.1.0 (port of AFPI 2.9.0)
+*   **Last Update:** October 4, 2026
+*   **Latest Improvement:** Brought in line with AFPI 2.9.0: the Antigravity IDE installed from its official AppImage (with menu entry and login callback), Git identity asked by `bootstrap.sh` and applied by the playbook, a GitHub CLI login reminder, a reboot gate that also compares the running kernel with the newest installed one, a root `.zshrc` with generic aliases only, and no vault required (API keys are optional).
 *   **Target:** AlmaLinux 10.x only (validated on 10.2). The playbook stops right away on any other distribution or major version.
-*   **Validation:** The parts changed in the port (repositories, OS guard, dnf 4 fixes, codecs, package lists, Roboto, VirtualBox with Secure Boot simulated) were validated in `almalinux:10` containers: the first run applies, the second reports no changes. A full run on a real machine or VM (EFI + Secure Boot) is still pending: see `TODO.md`.
+*   **Validation:** Every change is tested in `almalinux:10` containers (the first run applies, the second reports no changes) and then on an AlmaLinux 10 VM with EFI + Secure Boot: full runs, reboot gate, MOK enrollment with VirtualBox, and idempotence (see `TODO.md`).
 
 ## 🏗️ Architecture and Roles
 

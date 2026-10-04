@@ -26,11 +26,9 @@ Boot). Resta só o item opcional 🟡 dos codecs freeworld do VLC/HEIF (seção 
 alcançar as versões do RPM Fusion. A VM de teste era **KDE**: o que é só do GNOME (Ptyxis) foi
 validado só em container.
 
-Desde 2026-10-03, o trabalho é portar as melhorias do AFPI listadas em `PORTAR_DO_AFPI.md`
-(riscar cada item portado lá e registrar na seção 12 do `TODO.md`). Em 2026-10-04 foram portados o bloco 1
-(zsh e Antigravity: itens 1–4 e 8), o bloco 2 (git e `gh`: itens 5 e 6) e o item 7 (reboot
-gate com kernels); faltam a conferência final na máquina do trabalho (fim da seção 12 do
-`TODO.md`) e, depois dela, o item 9 (tag e release).
+Entre 2026-10-03 e 2026-10-04 foram portadas as melhorias do AFPI até a versão 2.9.0 (seção 12
+do `TODO.md`; a lista `PORTAR_DO_AFPI.md` foi apagada e fica no histórico do git), conferidas na VM
+e publicadas como **v1.1.0** (tag e release). Ao portar algo novo do AFPI, registrar na seção 12.
 
 ## Git
 
