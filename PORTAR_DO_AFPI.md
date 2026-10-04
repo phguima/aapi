@@ -1,6 +1,6 @@
 # Melhorias do AFPI para portar ao AAPI
 
-Levantamento de 2026-10-03: o que entrou no AFPI (`phguima/afpi`) depois da última atualização do
+Levantamento de 2026-10-03, atualizado em 2026-10-04: o que entrou no AFPI (`phguima/afpi`) depois da última atualização do
 AAPI (2026-10-01) e ainda não existe aqui. Cada item cita os commits do AFPI
 (`git -C ../afpi show <hash>`) e o que muda no EL10 (dnf4, `ansible-core` 2.16, sem NVIDIA, sem
 troca de hostname). Ao portar um item, testar em container `almalinux:10` (duas execuções e
@@ -17,7 +17,8 @@ aliases (`roles/common/tasks/main.yml`), e o `group_vars/all/all.yml` tem
 alias na 1ª execução, a 2ª o recoloca e dá `changed`.
 
 O que fazer:
-- Renomear o alias para `antigravity-ide`, que o instalador não apaga.
+- Renomear o alias para `antigravity-ide`, que o instalador não apaga. Usar já a forma final do
+  item 8 (executável chamado direto, sem `cd`).
 - Mover a task do Antigravity para **antes** do `ZSH | Add custom aliases to .zshrc`, com um
   comentário explicando o porquê.
 
@@ -132,7 +133,38 @@ errado. O AFPI passou a parar também quando `uname -r` difere do `kernel-core` 
 Na máquina do trabalho, sem dual boot, o problema não deve aparecer, e o dnf4 calcula o horário de
 boot de outro jeito. Vale portar só como robustez: é uma checagem barata e não depende do relógio.
 
-## 8. (Opcional) Tags de versão e releases
+## 8. Atalho no menu para o Antigravity IDE e alias sem `cd`
+
+**AFPI:** `de62e00` (atalho), `d059e70` (alias). **Situação no AAPI:** a IDE (tarball extraído à
+mão em `~/wks/tools/antigravity`) só abre pelo alias, que faz `cd` na pasta da IDE.
+
+No AFPI:
+- `all.yml`: `antigravity_ide_dir: "{{ user_home }}/wks/tools/antigravity"`, logo abaixo do
+  `antigravity_install_script_url`.
+- Role `apps`, tags `shortcuts` e `antigravity`: `stat` do `{{ antigravity_ide_dir }}/antigravity`
+  (`check_mode: false`); se existe, extrai o `icon.png` de dentro do `resources/app.asar` com
+  `roles/apps/files/extract_asar_file.py` (módulo `script`, `executable: python3`, `creates:`)
+  para `~/.local/share/icons/hicolor/512x512/apps/antigravity.png` e grava
+  `~/.local/share/applications/antigravity.desktop` com `copy: content:`
+  (`StartupWMClass=antigravity`, o `name` do `package.json`, para a dock agrupar a janela). Sem a
+  IDE, tudo é pulado.
+- Alias: `alias antigravity-ide='"{{ antigravity_ide_dir }}/antigravity"'`. Sem `cd` (o Electron
+  acha os recursos pelo caminho do executável) e em primeiro plano de propósito, com o log no
+  terminal; para abrir sem terminal, o ícone do menu.
+
+Adaptações no AAPI:
+- O role `apps` do AAPI não tem a seção `Shortcuts` (no AFPI ela nasceu para o Steam). Portar
+  também a task `Shortcuts | Ensure local applications directory exists` e a
+  `Shortcuts | Update desktop database` (`update-desktop-database`, do `desktop-file-utils`;
+  conferir se está instalado no EL10), com `when: user_name != 'root'`.
+- Criar `roles/apps/files/` (não existe no AAPI) e copiar o script como está: só usa a
+  biblioteca padrão do Python.
+- Validação usada no AFPI: container com a pasta real da IDE montada só para leitura em
+  `/home/<user>/wks/tools/antigravity`; `--check` antes relata as mudanças, 1ª execução cria ícone e
+  `.desktop` (`desktop-file-validate` sem erros), 2ª e `--check` `changed=0`, sem a IDE tudo
+  `skipping`. Para o alias, zsh no container e um `antigravity` falso que imprime o `$PWD`.
+
+## 9. (Opcional) Tags de versão e releases
 
 **AFPI:** tag `v2.7.0` e release no GitHub (2026-10-03). **Situação no AAPI:** a versão só existe
 no README (`1.0.0 (port of AFPI 2.6.0)`), sem tags.
