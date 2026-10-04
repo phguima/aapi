@@ -1,6 +1,7 @@
 # AAPI (Ansible AlmaLinux Post-Install) - Ansible Role-Based
 
 [![Project Status: Active](https://img.shields.io/badge/Project%20Status-Active-brightgreen.svg)](#-project-status)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a port of AFPI (Ansible Fedora Post-Install) and keeps its architecture based on **Roles** and environment-aware variables (Jinja2), so desktop customization and hardware setup are applied consistently and the workstation deployment is fully automated.
 
@@ -134,3 +135,7 @@ Roboto is fetched from the latest `googlefonts/roboto-3-classic` release, verifi
 | VirtualBox | RPM Fusion | Oracle repository, Secure Boot-aware signing |
 | Roboto font | `google-roboto-fonts` RPM | Latest upstream release |
 | `argyllcms`, `chkrootkit`, `unhide` | Installed | Dropped (not available on EL10) |
+
+## 📄 License
+
+AAPI is free software, released under the [GNU General Public License v3.0](LICENSE). You can use, modify and redistribute it; modified versions you distribute must also be released under the GPL v3.
