@@ -67,7 +67,7 @@ It also asks for your **Git `user.name` and `user.email`** (Enter keeps the save
 ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass
 ```
 
-On a fresh install the first run only sets up the repositories and upgrades the system. If the upgrade brings a new kernel or core libraries (`dnf needs-restarting -r`), the playbook **stops there and asks for a reboot**. After rebooting, run the **same command again**: the update step passes and the rest of the setup runs on the new kernel. This matters because VirtualBox builds its kernel modules against the running kernel, and the old kernel can only be cleaned up once it is no longer in use.
+On a fresh install the first run only sets up the repositories and upgrades the system. If the upgrade brings a new kernel or core libraries (`dnf needs-restarting -r`, or a newer installed `kernel-core` than the running kernel, a check that does not depend on the clock), the playbook **stops there and asks for a reboot**. After rebooting, run the **same command again**: the update step passes and the rest of the setup runs on the new kernel. This matters because VirtualBox builds its kernel modules against the running kernel, and the old kernel can only be cleaned up once it is no longer in use.
 
 With Secure Boot on, one more reboot is needed at the end to enroll the VirtualBox signing key (see below).
 

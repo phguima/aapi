@@ -27,8 +27,9 @@ validado só em container.
 
 Desde 2026-10-03, o trabalho é portar as melhorias do AFPI listadas em `PORTAR_DO_AFPI.md`
 (riscar cada item portado lá e registrar na seção 12 do `TODO.md`). Em 2026-10-04 foram portados o bloco 1
-(zsh e Antigravity: itens 1–4 e 8) e o bloco 2 (git e `gh`: itens 5 e 6); faltam os opcionais
-(7 e 9) e a conferência final na máquina do trabalho (fim da seção 12 do `TODO.md`).
+(zsh e Antigravity: itens 1–4 e 8), o bloco 2 (git e `gh`: itens 5 e 6) e o item 7 (reboot
+gate com kernels); faltam a conferência final na máquina do trabalho (fim da seção 12 do
+`TODO.md`) e, depois dela, o item 9 (tag e release).
 
 ## Git
 

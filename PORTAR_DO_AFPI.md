@@ -122,7 +122,7 @@ Ler o `hosts.yml` em vez de rodar `gh auth status` é proposital: o token fica n
 Checar o conteúdo, e não só se o arquivo existe, porque depois de um `gh auth logout` o arquivo
 pode ficar sem a entrada. README: uma seção "GitHub CLI login" com os dois comandos.
 
-## 7. (Opcional) Reboot gate que também compara os kernels
+## ~~7. (Opcional) Reboot gate que também compara os kernels~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `3a5fc3a`. **Situação no AAPI:** o gate usa só `dnf needs-restarting -r`.
 

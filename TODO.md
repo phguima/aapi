@@ -382,6 +382,16 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       o nome com aspas certo), 2ª execução e `--check` com `changed=0`; identidade vazia → só os
       padrões; lembrete aparece sem `hosts.yml` e com `hosts.yml` vazio, some com `github.com:`;
       `shellcheck` limpo. `community.general` 11.x tem o `git_config` com `scope: file`.
+- [x] Item 7 do `PORTAR_DO_AFPI.md` (opcional), feito em 2026-10-04: o reboot gate do role `update`
+      também para quando o kernel em execução (`ansible_facts['kernel']`) difere do `kernel-core`
+      mais novo instalado (`rpm -qa kernel-core` + `sort -V`). Não depende do relógio, ao contrário
+      do `needs-restarting`. Sem `kernel-core` instalado (container), a comparação é ignorada.
+      Validado (2026-10-04) em container `almalinux:10`, com o trecho do gate extraído do próprio
+      `main.yml` e wrappers falsos de `dnf needs-restarting` e `rpm -qa kernel-core`: sem
+      `kernel-core` → passa; kernel em execução é o mais novo → passa; kernel mais novo instalado
+      com rc 0 → para; rc 1 → para; rc 3 → falha; `--check` com kernel mais novo → para. O formato
+      do `kernel-core` no EL10 (`6.12.0-211.56.1.el10_2.x86_64`) bate com o `uname -r`, e o
+      `sort -V` ordena certo releases como `55.40.1.el10_0` < `124.8.1.el10_1`.
 
 ### Conferência final na máquina do trabalho (ao terminar o port)
 
@@ -393,6 +403,8 @@ entra aqui ao ser portado.
       os dois; `git status` não lista o `host_vars/` (está no `.gitignore`).
 - [ ] **Execução:** `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass`. Se o reboot gate
       parar o play, reiniciar e rodar de novo. Anotar o `PLAY RECAP` (`failed=0`).
+- [ ] **Reboot gate** (item 7): numa atualização que traga kernel novo, o play para pedindo reboot;
+      depois do reboot, `uname -r` é o kernel novo e o play passa do `update`.
 - [ ] **Idempotência:** rodar de novo → `changed=0`; depois `--check` → `failed=0`.
 - [ ] **`.zshrc` do root** (bloco 1): `sudo cat /root/.zshrc` → bloco de aliases só com `zshconfig`,
       `ohmyzsh`, `lls`, `llsa`, `clean-cache`; sem o bloco `API CONFIGURATION`; sem `alias
@@ -433,4 +445,5 @@ entra aqui ao ser portado.
 7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
    Resta só o opcional 🟡 dos freeworld do VLC/HEIF (seção 4).
 8. Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`): blocos 1 (zsh e Antigravity) e 2
-   (git e `gh`) ✅ feitos; faltam os opcionais (7 e 9) e a conferência final na máquina do trabalho.
+   (git e `gh`) e o item 7 (reboot gate com kernels) ✅ feitos; faltam a conferência final na
+   máquina do trabalho e o item 9 (tag e release).

@@ -60,8 +60,21 @@
   check_mode: false
   tags: [update]
 
+# needs-restarting compares install times with the boot time, which can be wrong (on AFPI's
+# dual-boot laptop, with the RTC in local time, it returned 0 right after a kernel upgrade).
+# Comparing the running kernel with the newest installed one needs no clock: a cheap safety net.
+- name: System | Find the newest installed kernel
+  ansible.builtin.shell: rpm -qa kernel-core --qf '%{VERSION}-%{RELEASE}.%{ARCH}\n' | sort -V | tail -n 1
+  register: newest_kernel
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags: [update]
+
 - name: System | Stop until the system is rebooted
-  when: reboot_hint.rc == 1
+  when: >-
+    reboot_hint.rc == 1 or
+    (newest_kernel.stdout | length > 0 and newest_kernel.stdout != ansible_facts['kernel'])
   tags: [update]
   block:
     - name: System | Ask for a reboot
