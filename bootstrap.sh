@@ -112,9 +112,12 @@ else
     warn "No terminal: git identity not asked. The playbook uses ${HOST_VARS} if it exists."
 fi
 
-# 5. Vault Check
+# 5. Optional vault (API keys)
+VAULT_FLAG=""
 if [ -f "group_vars/all/secrets.yml" ]; then
-    if ! grep -q "\$ANSIBLE_VAULT" "group_vars/all/secrets.yml"; then
+    if grep -q "\$ANSIBLE_VAULT" "group_vars/all/secrets.yml"; then
+        VAULT_FLAG=" --ask-vault-pass"
+    else
         warn "Note: 'group_vars/all/secrets.yml' is NOT encrypted. Consider running:"
         echo -e "      ${C_YELLOW}ansible-vault encrypt group_vars/all/secrets.yml${C_RESET}"
     fi
@@ -123,10 +126,12 @@ fi
 # 6. Final Instructions
 echo ""
 prompt "Bootstrap complete! You can now run the AAPI playbook using:"
-echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass${C_RESET}"
+echo -e "${C_GREEN}ansible-playbook -i inventory.ini site.yml -K${VAULT_FLAG}${C_RESET}"
 echo ""
-warn "Required flags:"
+warn "Flags:"
 echo -e "  -K               : Prompts for your sudo password."
-echo -e "  --ask-vault-pass : Prompts for your Ansible Vault password (if secrets are encrypted)."
+if [ -n "$VAULT_FLAG" ]; then
+    echo -e "  --ask-vault-pass : Prompts for the password of your vault (group_vars/all/secrets.yml)."
+fi
 echo ""
 warn "Note: Some changes (like group membership and the cedilla fix) require logging out or rebooting."

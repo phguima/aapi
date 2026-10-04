@@ -406,6 +406,18 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       erros, `mimeinfo.cache` com o `x-scheme-handler/antigravity`); 2ª execução e `--check`
       `changed=0`; `antigravity_ide_install: false` → nada baixado; `--tags shortcuts` sozinho sem
       erro; checksum errado (manifesto num servidor HTTP local) → recusado, nada gravado.
+- [x] Sem vault desde 2026-10-04: a única chave real (`GITHUB_MCP_PAT`) saiu, e as outras linhas eram
+      só exemplos comentados. `api_keys: ""` no `all.yml`; o bloco do `.zshrc` só ganha as linhas de
+      API quando `api_keys` tem conteúdo (vazio remove o bloco). `group_vars/all/secrets.yml` removido
+      do repo e posto no `.gitignore`: quem quiser chaves cria um vault local (`ansible-vault create`,
+      ver o README "API keys (optional)") e usa `--ask-vault-pass`. O `bootstrap.sh` mostra o comando
+      com `--ask-vault-pass` só quando o vault existe e está cifrado (e avisa se não estiver).
+      `--ask-vault-pass` saiu do README, `CLAUDE.md` e comandos de conferência. Validado em container
+      `almalinux:10`: `.zshrc` com o bloco antigo e uma chave falsa → a chave some do usuário e do
+      root; com `-e api_keys` → as linhas aparecem; de volta a vazio → somem; a 2ª execução de cada
+      cenário `changed=0`. Mensagens do `bootstrap.sh` conferidas sem vault, com vault cifrado e com
+      vault em texto puro.
+      Na máquina do trabalho, se o clone tiver um `secrets.yml` antigo, apagá-lo antes de rodar.
 
 ### Conferência final na máquina do trabalho (ao terminar o port)
 
@@ -415,7 +427,7 @@ entra aqui ao ser portado.
 - [ ] **Bootstrap** (bloco 2): `./bootstrap.sh` pergunta `user.name` e `user.email` (Enter mantém o
       que está no `~/.gitconfig`; e-mail inválido é recusado); `cat host_vars/127.0.0.1.yml` mostra
       os dois; `git status` não lista o `host_vars/` (está no `.gitignore`).
-- [ ] **Execução:** `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass`. Se o reboot gate
+- [ ] **Execução:** `ansible-playbook -i inventory.ini site.yml -K`. Se o reboot gate
       parar o play, reiniciar e rodar de novo. Anotar o `PLAY RECAP` (`failed=0`).
 - [ ] **Reboot gate** (item 7): numa atualização que traga kernel novo, o play para pedindo reboot;
       depois do reboot, `uname -r` é o kernel novo e o play passa do `update`.
@@ -425,8 +437,8 @@ entra aqui ao ser portado.
       antigravity=`.
 - [ ] **`.zshrc` do usuário** (bloco 1): `source ~/.zshrc`; `alias antigravity-ide` aponta para
       `~/wks/tools/antigravity/antigravity`; `alias full-update` termina com
-      `dnf needs-restarting -r`; as chaves de API continuam carregadas (`env | grep -c API`, sem
-      mostrar os valores).
+      `dnf needs-restarting -r`; sem vault, o `.zshrc` não tem o bloco `API CONFIGURATION`
+      (`grep -c "API CONFIGURATION" ~/.zshrc` → `0`; um bloco de execução antiga é removido).
 - [ ] **Instalação do Antigravity IDE**: sem a IDE em `~/wks/tools/antigravity`, o play baixa o
       AppImage (`ls -l ~/wks/tools/antigravity/antigravity`, ~189 MB) e o `fuse-libs`; com ela lá,
       não baixa. O login no Antigravity volta do navegador para o app (`MimeType` do `.desktop`).

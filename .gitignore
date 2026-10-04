@@ -2,6 +2,8 @@
 *.retry
 *.pyc
 .vault_pass
+# Optional vault with API keys (see README): personal, never committed
+group_vars/all/secrets.yml
 
 # Machine-specific settings written by bootstrap.sh (git identity)
 host_vars/

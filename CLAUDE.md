@@ -7,8 +7,9 @@ O alvo é uma **máquina do trabalho**. Por isso, por decisão de 2026-09-29:
 - o hostname **nunca** é alterado;
 - não há suporte a NVIDIA, Steam e ASUS ROG (removidos);
 - o VirtualBox vem do repositório da Oracle e funciona com Secure Boot;
-- o `mok_password` fica em `group_vars/all/all.yml`, e o vault (`secrets.yml`) guarda só `api_keys`.
-  O Claude não tem a senha do vault: não tentar abrir; pedir ao usuário quando precisar mexer.
+- o `mok_password` fica em `group_vars/all/all.yml`, e não há vault desde 2026-10-04: `api_keys` é
+  `""` no `all.yml`. Um vault opcional em `group_vars/all/secrets.yml` (no `.gitignore`) pode
+  defini-lo; se existir, o Claude não tem a senha: não tentar abrir.
 
 Melhorias de arquitetura feitas aqui (reboot gate, MOK idempotente, `is_secure_boot`, Ptyxis com
 `changed` real…) foram levadas para o AFPI. Ao portar algo entre os dois, adaptar o que é de cada
@@ -50,7 +51,7 @@ Validar em container podman `docker.io/library/almalinux:10`, **duas vezes** (id
 - Tasks só do GNOME: simular a sessão com um usuário comum com D-Bus de sessão,
   `XDG_CURRENT_DESKTOP=GNOME` e o playbook via `sudo` (o `env_setup` usa o `SUDO_USER`).
 - As receitas detalhadas (Secure Boot falso via `/sys/firmware`, `mokutil` falso, wrapper de
-  `dnf needs-restarting`, `:z` vs `:Z`, `-e` em JSON para booleanos, rodar o `site.yml` sem o vault)
+  `dnf needs-restarting`, `:z` vs `:Z`, `-e` em JSON para booleanos, `-e api_keys` para testar o bloco de API)
   estão no `CLAUDE.md` do AFPI e valem aqui também, trocando a imagem e o dnf5 pelo dnf4.
 - O que depende de hardware (build real do `vboxdrv`, enroll no MokManager, reboot) vai para a VM.
 

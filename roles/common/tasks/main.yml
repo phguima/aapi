@@ -144,7 +144,8 @@
   tags: [shell, setup]
 
 # Only for the user who runs the playbook: root does not use the API keys and has no business
-# keeping secrets from the vault in its .zshrc.
+# keeping them in its .zshrc. api_keys is empty unless an optional vault sets it (see README);
+# empty removes the block.
 - name: ZSH | Add API key configuration to .zshrc
   ansible.builtin.blockinfile:
     path: "{{ item.home }}/.zshrc"
@@ -153,6 +154,7 @@
     block: |
       # API KEYS Configuration
       {{ api_keys }}
+    state: "{{ 'present' if api_keys | trim else 'absent' }}"
     owner: "{{ item.name }}"
     mode: '0644'
   loop: "{{ zsh_users }}"

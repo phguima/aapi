@@ -42,14 +42,22 @@ AAPI features a tagging system that allows you to run specific parts of the conf
 | **Software** | `apps`, `software`, `dnf`, `flatpak`, `virtualbox`, `shortcuts` | Application installation via DNF, Flatpak, or vendor repositories, and menu entries (Antigravity IDE). |
 | **AI** | `ai`, `claude`, `python` | Claude Code and AI-related Python tools. |
 
-## 🔐 Secrets Management (Ansible Vault)
+## 🔐 API keys (optional)
 
-AAPI uses **Ansible Vault** for API keys. Since the provided `group_vars/all/secrets.yml` is encrypted, you must create your own if you fork this project.
+AAPI needs no secrets and no vault. The `api_keys` variable (empty in `group_vars/all/all.yml`) holds shell exports written to your `~/.zshrc`; while it is empty, no API key block is added. To use it, keep your keys in an encrypted **Ansible Vault**, which is git-ignored and never committed:
 
-### Required Variables in `secrets.yml`
-| Variable | Description | Example / Usage |
-| :--- | :--- | :--- |
-| `api_keys` | Block of environment exports for your shell | `export SERVICE_API_KEY="your_value_here"` |
+```bash
+ansible-vault create group_vars/all/secrets.yml
+```
+
+with content like:
+
+```yaml
+api_keys: |
+  export SERVICE_API_KEY="your_value_here"
+```
+
+Then add `--ask-vault-pass` to the commands below (`./bootstrap.sh` reminds you when the vault exists). Use `ansible-vault edit group_vars/all/secrets.yml` to change it later.
 
 The MOK enrollment password (`mok_password`) is **not** a secret and lives in `group_vars/all/all.yml`: see the Secure Boot section below.
 
@@ -64,7 +72,7 @@ It also asks for your **Git `user.name` and `user.email`** (Enter keeps the save
 
 ### 2. Run the Playbook (update, reboot, run again)
 ```bash
-ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass
+ansible-playbook -i inventory.ini site.yml -K
 ```
 
 On a fresh install the first run only sets up the repositories and upgrades the system. If the upgrade brings a new kernel or core libraries (`dnf needs-restarting -r`, or a newer installed `kernel-core` than the running kernel, a check that does not depend on the clock), the playbook **stops there and asks for a reboot**. After rebooting, run the **same command again**: the update step passes and the rest of the setup runs on the new kernel. This matters because VirtualBox builds its kernel modules against the running kernel, and the old kernel can only be cleaned up once it is no longer in use.
@@ -73,7 +81,7 @@ With Secure Boot on, one more reboot is needed at the end to enroll the VirtualB
 
 Or only a part of it, for example just the repositories:
 ```bash
-ansible-playbook -i inventory.ini site.yml --tags repos -K --ask-vault-pass
+ansible-playbook -i inventory.ini site.yml --tags repos -K
 ```
 
 With `--check`, the Roboto step only reports which version would be installed (the full playbook has not been validated in check mode yet).
