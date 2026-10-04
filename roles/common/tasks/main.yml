@@ -84,23 +84,28 @@
   loop: "{{ zsh_users }}"
   tags: [shell, omz]
 
-- name: ZSH | Add custom aliases to .zshrc
-  ansible.builtin.blockinfile:
-    path: "{{ item.home }}/.zshrc"
-    marker: "# {mark} ANSIBLE MANAGED ALIASES"
-    block: "{{ zsh_aliases }}"
-    owner: "{{ item.name }}"
-  loop: "{{ zsh_users }}"
-  tags: [shell, omz, aliases]
-
 # --- Antigravity CLI ---
-- name: Antigravity | Install Antigravity CLI for users
+# Runs before the aliases block: its shell setup ('agy install') deletes any 'alias antigravity=...'
+# from .zshrc (that is why ours is named antigravity-ide), so .zshrc is settled before the block.
+# Only for the user who runs the playbook: root has no workspace or agycli alias to use it with.
+- name: Antigravity | Install Antigravity CLI for the user
   ansible.builtin.shell:
     cmd: "curl -fsSL {{ antigravity_install_script_url }} | bash"
     creates: "{{ item.home }}/.local/bin/agy"
   become_user: "{{ item.name }}"
   loop: "{{ zsh_users }}"
+  when: item.name == user_name
   tags: [shell, antigravity]
+
+# Root gets only the common aliases; the user who runs the playbook also gets zsh_aliases_user.
+- name: ZSH | Add custom aliases to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ item.home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED ALIASES"
+    block: "{{ zsh_aliases_common }}{{ zsh_aliases_user if item.name == user_name else '' }}"
+    owner: "{{ item.name }}"
+  loop: "{{ zsh_users }}"
+  tags: [shell, omz, aliases]
 
 # Drops the block written by AFPI under the old marker, so it is not left orphaned
 # next to the renamed one below.
@@ -112,6 +117,8 @@
   loop: "{{ zsh_users }}"
   tags: [shell, setup]
 
+# Only for the user who runs the playbook: root does not use the API keys and has no business
+# keeping secrets from the vault in its .zshrc.
 - name: ZSH | Add API key configuration to .zshrc
   ansible.builtin.blockinfile:
     path: "{{ item.home }}/.zshrc"
@@ -123,6 +130,18 @@
     owner: "{{ item.name }}"
     mode: '0644'
   loop: "{{ zsh_users }}"
+  when: item.name == user_name
+  no_log: true
+  tags: [shell, setup]
+
+# Older runs wrote this block (API keys included) to root's .zshrc as well: remove it.
+- name: ZSH | Remove API key block from other users' .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ item.home }}/.zshrc"
+    marker: "# {mark} API CONFIGURATION"
+    state: absent
+  loop: "{{ zsh_users }}"
+  when: item.name != user_name
   tags: [shell, setup]
 
 # --- GRUB ---

@@ -219,6 +219,67 @@
     state: present
   tags: [software, gh]
 
+# --- Shortcuts ---
+- name: Shortcuts | Ensure local applications directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.local/share/applications"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+  when: user_name != 'root'
+  tags: [software, shortcuts]
+
+# The Antigravity IDE ships as a bare tarball, with no .desktop file and the icon only inside
+# app.asar. Electron's Wayland app_id comes from package.json 'name' (antigravity), so naming the
+# file antigravity.desktop lets the dock match the window to this entry.
+- name: Shortcuts | Check for the Antigravity IDE
+  ansible.builtin.stat:
+    path: "{{ antigravity_ide_dir }}/antigravity"
+  register: antigravity_ide_bin
+  check_mode: false
+  when: user_name != 'root'
+  tags: [software, shortcuts, antigravity]
+
+- name: Shortcuts | Extract the Antigravity IDE icon
+  ansible.builtin.script:
+    cmd: >-
+      extract_asar_file.py {{ antigravity_ide_dir | quote }}/resources/app.asar icon.png
+      {{ user_home | quote }}/.local/share/icons/hicolor/512x512/apps/antigravity.png
+    executable: python3
+    creates: "{{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png"
+  become_user: "{{ user_name }}"
+  when: user_name != 'root' and antigravity_ide_bin.stat.exists | default(false)
+  tags: [software, shortcuts, antigravity]
+
+- name: Shortcuts | Create the Antigravity IDE shortcut
+  ansible.builtin.copy:
+    dest: "{{ user_home }}/.local/share/applications/antigravity.desktop"
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=Antigravity
+      Comment=Agentic development platform
+      Exec={{ antigravity_ide_dir }}/antigravity %F
+      Path={{ antigravity_ide_dir }}
+      Icon={{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png
+      Terminal=false
+      Categories=Development;IDE;
+      StartupWMClass=antigravity
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+  when: user_name != 'root' and antigravity_ide_bin.stat.exists | default(false)
+  tags: [software, shortcuts, antigravity]
+
+- name: Shortcuts | Update desktop database
+  ansible.builtin.command:
+    cmd: "update-desktop-database {{ user_home }}/.local/share/applications/"
+  become_user: "{{ user_name }}"
+  changed_when: false
+  when: user_name != 'root'
+  tags: [software, shortcuts, antigravity]
+
 # --- Flatpak overrides and cedilla fixes ---
 # Bitwarden runs on native Wayland (the Flatpak wrapper picks the display mode from the granted
 # sockets); the cedilla works there without GTK_IM_MODULE. X11 stays only as a fallback.

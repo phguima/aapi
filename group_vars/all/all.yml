@@ -127,21 +127,29 @@ omz_plugins:
 
 # Antigravity CLI settings
 antigravity_install_script_url: "https://antigravity.google/cli/install.sh"
+# Antigravity IDE: not installed by the playbook (manual tarball extract). When the binary is found
+# here, the 'apps' role adds a menu entry for it; otherwise those tasks are skipped.
+antigravity_ide_dir: "{{ user_home }}/wks/tools/antigravity"
 
 # Claude Code settings
 claude_install_script_url: "https://claude.ai/install.sh"
 
 # Zsh Aliases
-zsh_aliases: |
+# zsh_aliases_common goes to every .zshrc the playbook manages, root included. zsh_aliases_user
+# only to the user who runs the playbook: workspace and update shortcuts that make no sense for root.
+# 'needs-restarting -r' (dnf4): without -r it lists processes instead of saying whether to reboot.
+zsh_aliases_common: |
   alias zshconfig="nano ~/.zshrc"
   alias ohmyzsh="nano ~/.oh-my-zsh"
   alias lls="ls --color -lh --group-directories-first"
   alias llsa="ls --color -lha --group-directories-first"
+  alias clean-cache="sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches"
+
+zsh_aliases_user: |
   alias claudecli="cd ~/wks; clear; claude"
   alias agycli="cd ~/wks; clear; agy"
-  alias antigravity="cd ~/wks/tools/antigravity; ./antigravity"
-  alias clean-cache="sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches"
-  alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y"
+  alias antigravity-ide='"{{ antigravity_ide_dir }}/antigravity"'
+  alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y; dnf needs-restarting -r"
 
 # PTYxis Settings
 ptyxis_restore_window_size: "false"

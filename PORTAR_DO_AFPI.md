@@ -6,7 +6,7 @@ AAPI (2026-10-01) e ainda não existe aqui. Cada item cita os commits do AFPI
 troca de hostname). Ao portar um item, testar em container `almalinux:10` (duas execuções e
 `--check`), marcar no `TODO.md` e riscar aqui. Apagar este arquivo quando tudo estiver portado.
 
-## 1. Antigravity: alias apagado pelo instalador (bug de idempotência)
+## ~~1. Antigravity: alias apagado pelo instalador (bug de idempotência)~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `6d8b996`. **Situação no AAPI:** o bug existe.
 
@@ -22,7 +22,7 @@ O que fazer:
 - Mover a task do Antigravity para **antes** do `ZSH | Add custom aliases to .zshrc`, com um
   comentário explicando o porquê.
 
-## 2. Antigravity CLI só para o usuário, não para o root
+## ~~2. Antigravity CLI só para o usuário, não para o root~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `b193c88`. **Situação no AAPI:** é instalado para todos os `zsh_users`, root incluído.
 
@@ -39,7 +39,7 @@ sudo rm /root/.local/bin/agy && sudo rmdir /root/.local/bin
 sudo rm -r /root/.cache/antigravity
 ```
 
-## 3. `.zshrc` do root só com aliases genéricos e sem as chaves de API
+## ~~3. `.zshrc` do root só com aliases genéricos e sem as chaves de API~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `854d6ee`. **Situação no AAPI:** o root recebe todos os aliases e o bloco
 `API CONFIGURATION` com o `{{ api_keys }}` do vault, com `mode: '0644'`.
@@ -67,7 +67,7 @@ Validação usada no AFPI: container com `/root/.zshrc` e `.zshrc` do usuário n
 (chave falsa via `-e 'api_keys="export FAKE_KEY=secret"'`): `--check` não altera os arquivos
 (conferir com `sha256sum`), 1ª execução `changed=2`, 2ª e `--check` `changed=0`.
 
-## 4. `full-update` avisa quando precisa reiniciar
+## ~~4. `full-update` avisa quando precisa reiniciar~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `6d4f9e3`. **Situação no AAPI:** o alias termina no `dnf upgrade`.
 
@@ -133,7 +133,7 @@ errado. O AFPI passou a parar também quando `uname -r` difere do `kernel-core` 
 Na máquina do trabalho, sem dual boot, o problema não deve aparecer, e o dnf4 calcula o horário de
 boot de outro jeito. Vale portar só como robustez: é uma checagem barata e não depende do relógio.
 
-## 8. Atalho no menu para o Antigravity IDE e alias sem `cd`
+## ~~8. Atalho no menu para o Antigravity IDE e alias sem `cd`~~ — portado (2026-10-04, `TODO.md` seção 12)
 
 **AFPI:** `de62e00` (atalho), `d059e70` (alias). **Situação no AAPI:** a IDE (tarball extraído à
 mão em `~/wks/tools/antigravity`) só abre pelo alias, que faz `cd` na pasta da IDE.

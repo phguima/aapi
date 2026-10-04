@@ -2,7 +2,7 @@
 
 [![Project Status: Active](https://img.shields.io/badge/Project%20Status-Active-brightgreen.svg)](#-project-status)
 
-AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a port of AFPI (Advanced Fedora Post-Install) and keeps its architecture based on **Roles** and environment-aware variables (Jinja2), so desktop customization and hardware setup are applied consistently and the workstation deployment is fully automated.
+AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a port of AFPI (Ansible Fedora Post-Install) and keeps its architecture based on **Roles** and environment-aware variables (Jinja2), so desktop customization and hardware setup are applied consistently and the workstation deployment is fully automated.
 
 > [!WARNING]
 > **Disclaimer:** This project is tailored specifically for my personal environment, preferences, and hardware configuration. If you choose to use it, you must thoroughly review all roles, configurations, and variables, and customize them to fit your own specific requirements and hardware setup. Use it at your own risk.
@@ -20,8 +20,8 @@ The project is organized to isolate responsibilities, ensuring idempotency and e
 
 *   **`update`**: DNF tuning, the **CRB** and **EPEL** repositories (enabled before anything else is installed), **RPM Fusion for EL**, a full system upgrade, and a **reboot gate** that stops the playbook when the upgrade requires a reboot.
 *   **`hardware`**: Intel VA-API drivers, full `ffmpeg` (replacing `ffmpeg-free`) and multimedia codecs.
-*   **`common`**: Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI, and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
-*   **`apps`**: DNF and Flatpak applications, ClamAV, Brave, VS Code, GitHub CLI and **VirtualBox from Oracle's repository**, with Secure Boot-aware module signing (see below).
+*   **`common`**: Flathub, kernel cleanup, GRUB tuning (regenerated automatically when changed), the Antigravity CLI (user only), and **Zero-Config ZSH** setup (Oh-My-Zsh with Kali-like theme and self-managed plugins).
+*   **`apps`**: DNF and Flatpak applications, ClamAV, Brave, VS Code, GitHub CLI and **VirtualBox from Oracle's repository**, with Secure Boot-aware module signing (see below). Adds a menu entry (icon included) for the Antigravity IDE when it is found in `antigravity_ide_dir`.
 *   **`desktop`**:
     *   **Fonts**: Fira Code from EPEL and **Roboto from its latest upstream release** (not packaged for EL10). It is replaced automatically whenever a new release is published.
     *   **Universal Cedilla (ç) Fix**: Uses a `~/.XCompose` mapping plus Flatpak overrides. Browsers, Bitwarden and Antigravity run on native Wayland with no extra fix; Zoom always runs on Xwayland (it hardcodes xcb), where the cedilla also works.
@@ -38,7 +38,7 @@ AAPI features a tagging system that allows you to run specific parts of the conf
 | **Hardware** | `hardware`, `intel`, `codecs`, `ffmpeg` | Intel video acceleration and multimedia codecs. |
 | **Shell** | `shell`, `zsh`, `omz`, `aliases` | ZSH installation, Oh-My-Zsh theme, and custom aliases. |
 | **Desktop** | `desktop`, `fonts`, `roboto`, `cedilla` | Terminal profiles, fonts, and the universal cedilla fix. |
-| **Software** | `apps`, `software`, `dnf`, `flatpak`, `virtualbox` | Application installation via DNF, Flatpak, or vendor repositories. |
+| **Software** | `apps`, `software`, `dnf`, `flatpak`, `virtualbox`, `shortcuts` | Application installation via DNF, Flatpak, or vendor repositories, and menu entries (Antigravity IDE). |
 | **AI** | `ai`, `claude`, `python` | Claude Code and AI-related Python tools. |
 
 ## 🔐 Secrets Management (Ansible Vault)

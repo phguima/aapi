@@ -337,6 +337,68 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       o `vboxdrv` carrega sem assinatura.
       Etapa verificada na VM (2026-10-01).
 
+## 12. Port das melhorias do AFPI (`PORTAR_DO_AFPI.md`)
+
+- [x] Bloco 1, zsh e Antigravity (itens 1, 2, 3, 4 e 8 do `PORTAR_DO_AFPI.md`), feito em 2026-10-04:
+      - `zsh_aliases` virou `zsh_aliases_common` (todo `.zshrc`, root incluído) e
+        `zsh_aliases_user` (só o usuário: `claudecli`, `agycli`, `antigravity-ide`, `full-update`).
+      - Alias `antigravity` → `antigravity-ide`, chamando `{{ antigravity_ide_dir }}/antigravity`
+        direto (sem `cd`, log no terminal). O instalador do CLI não apaga mais o alias.
+      - `Antigravity | Install Antigravity CLI for the user`: antes do bloco de aliases e só para o
+        usuário (`when: item.name == user_name`).
+      - Bloco `API CONFIGURATION` só no `.zshrc` do usuário, com `no_log: true`; task nova remove o
+        bloco do `.zshrc` do root.
+      - `full-update` termina com `dnf needs-restarting -r` (dnf4: sem o `-r` lista processos).
+      - Role `apps`, seção `Shortcuts` nova (tags `shortcuts`, `antigravity`): pasta
+        `~/.local/share/applications`, ícone extraído do `app.asar`
+        (`roles/apps/files/extract_asar_file.py`, copiado do AFPI), `antigravity.desktop` e
+        `update-desktop-database`. Pulado quando a IDE não está em `antigravity_ide_dir`.
+      Validado (2026-10-04) em container `almalinux:10` (`ansible-core` 2.16, `community.general`
+      11.x), `--tags aliases,setup,shortcuts,antigravity`, partindo do formato antigo (bloco de
+      aliases com `alias antigravity=…` e bloco das chaves no `.zshrc` do root e do usuário) e com a
+      pasta real da IDE montada: `--check` antes não altera os `.zshrc` (`sha256sum`); 1ª execução
+      `changed=6` (root só com os aliases comuns e sem o bloco das chaves; usuário com tudo; `agy`
+      só do usuário; ícone 512×512 e `.desktop` com `desktop-file-validate` sem erros); 2ª execução
+      e `--check` com `changed=0`. O `desktop-file-utils` vem com o `gnome-shell` e o
+      `plasma-workspace` (conferido com `dnf install --assumeno`).
+
+### Conferência final na máquina do trabalho (ao terminar o port)
+
+Fazer uma vez, depois de portar todos os blocos, com o repo atualizado (`git pull`). Cada bloco
+entra aqui ao ser portado.
+
+- [ ] **Bootstrap** (bloco 2): `./bootstrap.sh` pergunta `user.name` e `user.email` (Enter mantém o
+      que está no `~/.gitconfig`; e-mail inválido é recusado); `cat host_vars/127.0.0.1.yml` mostra
+      os dois; `git status` não lista o `host_vars/` (está no `.gitignore`).
+- [ ] **Execução:** `ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass`. Se o reboot gate
+      parar o play, reiniciar e rodar de novo. Anotar o `PLAY RECAP` (`failed=0`).
+- [ ] **Idempotência:** rodar de novo → `changed=0`; depois `--check` → `failed=0`.
+- [ ] **`.zshrc` do root** (bloco 1): `sudo cat /root/.zshrc` → bloco de aliases só com `zshconfig`,
+      `ohmyzsh`, `lls`, `llsa`, `clean-cache`; sem o bloco `API CONFIGURATION`; sem `alias
+      antigravity=`.
+- [ ] **`.zshrc` do usuário** (bloco 1): `source ~/.zshrc`; `alias antigravity-ide` aponta para
+      `~/wks/tools/antigravity/antigravity`; `alias full-update` termina com
+      `dnf needs-restarting -r`; as chaves de API continuam carregadas (`env | grep -c API`, sem
+      mostrar os valores).
+- [ ] **Antigravity IDE** (bloco 1): `cd ~ && antigravity-ide` abre a IDE com o log no terminal; pelo
+      menu, o Antigravity aparece com o ícone, abre, e a janela fica agrupada no mesmo ícone da
+      dock/barra de tarefas (se aparecer um ícone genérico separado, conferir o `app_id` e ajustar
+      o `StartupWMClass`).
+- [ ] **`full-update`** (bloco 1): termina com a resposta do `needs-restarting -r` (reboot necessário
+      ou não).
+- [ ] **Limpeza do `agy` do root** (bloco 1, à mão): conferir com `sudo ls /root/.local/bin` e
+      `sudo grep -n local/bin /root/.zshrc /root/.bashrc /root/.bash_profile`; depois rodar os
+      comandos do item 2 do `PORTAR_DO_AFPI.md`. O `agy` do usuário continua funcionando
+      (`agy --version`).
+- [ ] **Git** (bloco 2): `git config --global --list` → `user.name`, `user.email`,
+      `init.defaultBranch=main`, `pull.ff=only`; `ls -l ~/.gitconfig` com o usuário como dono;
+      `sudo ls /root/.gitconfig` → não existe.
+- [ ] **GitHub CLI** (bloco 2): sem login, o fim do play mostra `GitHub CLI | Remind to log in`;
+      depois de `gh auth login --hostname github.com --git-protocol https --web` e
+      `gh auth setup-git`, a execução seguinte não mostra o lembrete.
+- [ ] **Fechamento:** marcar os itens acima, apagar o `PORTAR_DO_AFPI.md` (tudo portado), atualizar
+      versão e "Validation" no README e criar a tag/release (item 9 do `PORTAR_DO_AFPI.md`).
+
 ---
 
 ## Ordem sugerida
@@ -349,3 +411,5 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
 6. ~~Seção 9 (renomear) + README~~ ✅ feito.
 7. ~~Testes na VM AlmaLinux 10 com EFI + Secure Boot (seção 11)~~ ✅ feito (2026-10-01).
    Resta só o opcional 🟡 dos freeworld do VLC/HEIF (seção 4).
+8. Port das melhorias do AFPI (seção 12 e `PORTAR_DO_AFPI.md`): bloco 1 (zsh e Antigravity) ✅
+   feito; falta o bloco 2 (git e `gh`) e os opcionais.
