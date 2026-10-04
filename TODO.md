@@ -392,6 +392,20 @@ ansible-playbook -i inventory.ini site.yml -K --ask-vault-pass 2>&1 | tee run2.l
       com rc 0 → para; rc 1 → para; rc 3 → falha; `--check` com kernel mais novo → para. O formato
       do `kernel-core` no EL10 (`6.12.0-211.56.1.el10_2.x86_64`) bate com o `uname -r`, e o
       `sort -V` ordena certo releases como `55.40.1.el10_0` < `124.8.1.el10_1`.
+- [x] Antigravity IDE instalado pelo playbook (AppImage), feito em 2026-10-04 junto com o AFPI
+      (seção 10 do `TODO.md` de lá, onde está o achado: o binário do `noir` já era o AppImage, e o
+      ícone vinha de sobras de um tarball antigo). Role `apps`, tag `antigravity`:
+      `antigravity_ide_install: true` e `antigravity_ide_manifest_url` (manifesto do próprio app);
+      `fuse-libs` (existe no `baseos` do EL10); sem o binário, baixa o AppImage do manifesto com
+      checksum SHA-512; com o binário, não baixa (o app se atualiza sozinho). Ícone extraído do
+      AppImage; `.desktop` com `%U` e `MimeType=x-scheme-handler/antigravity;`.
+      `extract_asar_file.py` removido.
+      Validado (2026-10-04) em container `almalinux:10` (`ansible-core` 2.16.16): `--check` numa
+      máquina nova relata sem falhar; 1ª execução instala `fuse-libs`, baixa o AppImage real (189 MB,
+      dono o usuário), extrai o ícone (PNG 512×512) e cria o `.desktop` (`desktop-file-validate` sem
+      erros, `mimeinfo.cache` com o `x-scheme-handler/antigravity`); 2ª execução e `--check`
+      `changed=0`; `antigravity_ide_install: false` → nada baixado; `--tags shortcuts` sozinho sem
+      erro; checksum errado (manifesto num servidor HTTP local) → recusado, nada gravado.
 
 ### Conferência final na máquina do trabalho (ao terminar o port)
 
@@ -413,6 +427,9 @@ entra aqui ao ser portado.
       `~/wks/tools/antigravity/antigravity`; `alias full-update` termina com
       `dnf needs-restarting -r`; as chaves de API continuam carregadas (`env | grep -c API`, sem
       mostrar os valores).
+- [ ] **Instalação do Antigravity IDE**: sem a IDE em `~/wks/tools/antigravity`, o play baixa o
+      AppImage (`ls -l ~/wks/tools/antigravity/antigravity`, ~189 MB) e o `fuse-libs`; com ela lá,
+      não baixa. O login no Antigravity volta do navegador para o app (`MimeType` do `.desktop`).
 - [ ] **Antigravity IDE** (bloco 1): `cd ~ && antigravity-ide` abre a IDE com o log no terminal; pelo
       menu, o Antigravity aparece com o ícone, abre, e a janela fica agrupada no mesmo ícone da
       dock/barra de tarefas (se aparecer um ícone genérico separado, conferir o `app_id` e ajustar

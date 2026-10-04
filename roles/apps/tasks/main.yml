@@ -230,10 +230,18 @@
   when: user_name != 'root'
   tags: [software, shortcuts]
 
-# The Antigravity IDE ships as a bare tarball, with no .desktop file and the icon only inside
-# app.asar. Electron's Wayland app_id comes from package.json 'name' (antigravity), so naming the
-# file antigravity.desktop lets the dock match the window to this entry.
-- name: Shortcuts | Check for the Antigravity IDE
+# --- Antigravity IDE ---
+# Official AppImage. The update manifest is the one the app itself polls (electron-updater, channel
+# latest-x64 on Linux); its sha512 is base64, get_url wants hex. Only downloaded when missing: once
+# installed, the app replaces its own AppImage on updates, so the playbook never fights it.
+- name: Antigravity IDE | Install FUSE 2 (needed to run AppImages)
+  ansible.builtin.dnf:
+    name: fuse-libs
+    state: present
+  when: antigravity_ide_install | bool
+  tags: [software, antigravity]
+
+- name: Antigravity IDE | Check for the AppImage
   ansible.builtin.stat:
     path: "{{ antigravity_ide_dir }}/antigravity"
   register: antigravity_ide_bin
@@ -241,18 +249,77 @@
   when: user_name != 'root'
   tags: [software, shortcuts, antigravity]
 
-- name: Shortcuts | Extract the Antigravity IDE icon
-  ansible.builtin.script:
-    cmd: >-
-      extract_asar_file.py {{ antigravity_ide_dir | quote }}/resources/app.asar icon.png
-      {{ user_home | quote }}/.local/share/icons/hicolor/512x512/apps/antigravity.png
-    executable: python3
-    creates: "{{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png"
+- name: Antigravity IDE | Download the latest release
+  when:
+    - antigravity_ide_install | bool
+    - user_name != 'root'
+    - not (antigravity_ide_bin.stat.exists | default(true))
+  tags: [software, antigravity]
+  block:
+    - name: Antigravity IDE | Read the update manifest
+      ansible.builtin.uri:
+        url: "{{ antigravity_ide_manifest_url }}"
+        return_content: true
+      register: antigravity_ide_manifest
+      check_mode: false
+
+    - name: Antigravity IDE | Pick the AppImage from the manifest
+      ansible.builtin.set_fact:
+        antigravity_ide_release: >-
+          {{ (antigravity_ide_manifest.content | from_yaml).files
+             | selectattr('url', 'search', '[.]AppImage$') | first }}
+
+    - name: Antigravity IDE | Convert the checksum to hex
+      ansible.builtin.command:
+        argv: [python3, -c, "import base64, sys; print(base64.b64decode(sys.argv[1]).hex())",
+               "{{ antigravity_ide_release.sha512 }}"]
+      register: antigravity_ide_sha512
+      changed_when: false
+      check_mode: false
+
+    - name: Antigravity IDE | Ensure the install directory exists
+      ansible.builtin.file:
+        path: "{{ antigravity_ide_dir }}"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0755'
+      register: antigravity_ide_dir_created
+
+    # In --check the directory above is only reported, not created, and get_url would fail on it.
+    - name: Antigravity IDE | Download the AppImage
+      ansible.builtin.get_url:
+        url: "{{ antigravity_ide_release.url }}"
+        dest: "{{ antigravity_ide_dir }}/antigravity"
+        checksum: "sha512:{{ antigravity_ide_sha512.stdout }}"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0755'
+      register: antigravity_ide_download
+      when: not (ansible_check_mode and antigravity_ide_dir_created is changed)
+
+# The icon comes from inside the AppImage (--appimage-extract needs no FUSE). The antigravity.png
+# at its root is only a symlink, so extract the real file. Naming the entry
+# antigravity.desktop lets the dock match the window (Wayland app_id 'antigravity') to it; the
+# MimeType lets the browser hand the login callback (antigravity://) back to the app.
+- name: Antigravity IDE | Extract the icon
+  ansible.builtin.shell:
+    cmd: |
+      set -e
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+      cd "$tmp"
+      {{ (antigravity_ide_dir ~ '/antigravity') | quote }} --appimage-extract {{ icon_in_appimage }} >/dev/null
+      install -D -m 0644 squashfs-root/{{ icon_in_appimage }} {{ antigravity_ide_icon | quote }}
+    creates: "{{ antigravity_ide_icon }}"
   become_user: "{{ user_name }}"
-  when: user_name != 'root' and antigravity_ide_bin.stat.exists | default(false)
+  vars:
+    antigravity_ide_icon: "{{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png"
+    icon_in_appimage: usr/share/icons/hicolor/512x512/apps/antigravity.png
+  when: user_name != 'root' and (antigravity_ide_bin.stat.exists | default(false) or antigravity_ide_download | default({}) is changed)
   tags: [software, shortcuts, antigravity]
 
-- name: Shortcuts | Create the Antigravity IDE shortcut
+- name: Antigravity IDE | Create the menu entry
   ansible.builtin.copy:
     dest: "{{ user_home }}/.local/share/applications/antigravity.desktop"
     content: |
@@ -260,16 +327,16 @@
       Type=Application
       Name=Antigravity
       Comment=Agentic development platform
-      Exec={{ antigravity_ide_dir }}/antigravity %F
-      Path={{ antigravity_ide_dir }}
+      Exec={{ antigravity_ide_dir }}/antigravity %U
       Icon={{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png
       Terminal=false
       Categories=Development;IDE;
+      MimeType=x-scheme-handler/antigravity;
       StartupWMClass=antigravity
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
     mode: '0644'
-  when: user_name != 'root' and antigravity_ide_bin.stat.exists | default(false)
+  when: user_name != 'root' and (antigravity_ide_bin.stat.exists | default(false) or antigravity_ide_download | default({}) is changed)
   tags: [software, shortcuts, antigravity]
 
 - name: Shortcuts | Update desktop database

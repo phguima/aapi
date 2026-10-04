@@ -135,9 +135,13 @@ omz_plugins:
 
 # Antigravity CLI settings
 antigravity_install_script_url: "https://antigravity.google/cli/install.sh"
-# Antigravity IDE: not installed by the playbook (manual tarball extract). When the binary is found
-# here, the 'apps' role adds a menu entry for it; otherwise those tasks are skipped.
+# Antigravity IDE (AppImage). With antigravity_ide_install, the 'apps' role downloads the latest
+# release from the official update manifest when {{ antigravity_ide_dir }}/antigravity is missing;
+# after that the app updates itself (it replaces its own AppImage). Either way, when the binary is
+# there it gets a menu entry. Set antigravity_ide_install to false to skip the download.
+antigravity_ide_install: true
 antigravity_ide_dir: "{{ user_home }}/wks/tools/antigravity"
+antigravity_ide_manifest_url: "https://antigravity-hub-auto-updater-974169037036.us-central1.run.app/manifest/latest-x64-linux.yml"
 
 # Claude Code settings
 claude_install_script_url: "https://claude.ai/install.sh"
