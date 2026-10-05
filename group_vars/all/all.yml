@@ -141,7 +141,7 @@ omz_install_script_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/maste
 omz_theme_name: "kali-like-alt"
 omz_plugins:
   - git
-# Nota: zsh-autosuggestions e zsh-syntax-highlighting são gerenciados internamente pelo tema kali-like-alt.
+# Note: zsh-autosuggestions and zsh-syntax-highlighting are managed internally by the kali-like-alt theme.
 
 
 # Antigravity CLI settings

@@ -87,9 +87,9 @@ configure_prompt() {
     ZSH_THEME_GIT_PROMPT_SUFFIX="]"
 
     # DEFINA AS STRINGS DE STATUS COM OS CÓDIGOS DE COR ANSI *NÃO IMPRIMÍVEIS*.
-    # Código ANSI para verde: %{$FG[114]%}
-    # Código ANSI para laranja/amarelo: %{$FG[214]%}
-    # Código ANSI para vermelho: %{$FG[196]%}
+    # ANSI code for green: %{$FG[114]%}
+    # ANSI code for orange/yellow: %{$FG[214]%}
+    # ANSI code for red: %{$FG[196]%}
 
     # ESTADO LIMPO (a branch e o símbolo ficam VERDE)
     ZSH_THEME_GIT_PROMPT_CLEAN="%{$FG[114]%} ✔%{$LINEPROMPT%}"
@@ -109,9 +109,9 @@ configure_prompt() {
 
     case "$PROMPT_ALTERNATIVE" in
         twoline)
-            # A linha mais importante é garantir que o $(git_prompt_info) seja seguido por %{$reset_color%}.
-            # No seu tema original, o %{$reset_color%} estava dentro da definição de ZSH_THEME_GIT_PROMPT_SUFFIX,
-            # o que o tornava texto literal.
+            # The key point is that $(git_prompt_info) is followed by %{$reset_color%}.
+            # In the original theme, %{$reset_color%} was inside the ZSH_THEME_GIT_PROMPT_SUFFIX definition,
+            # which made it literal text.
             PROMPT=$'%{$LINEPROMPT%}┌───$(virtualenv_info)─(%{$CLOCKPROMTP%}%T$LINEPROMPT)─(%{$FGPROMPT%}%n@%m%{$LINEPROMPT%})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%{$LINEPROMPT%}]$(git_prompt_info)%{$reset_color%}\n%{$LINEPROMPT%}└─%B%(#.%F{red}#.%{$FGPROMPT%}$)%b%F{reset} '
 
             RPROMPT=$'%{$LINEPROMPT%}(%(?.$SUCCESSPROMPT%?$LINEPROMPT.$ERRORPROMPT%?$LINEPROMPT)$LINEPROMPT)'
