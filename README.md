@@ -135,6 +135,7 @@ Roboto is fetched from the latest `googlefonts/roboto-3-classic` release, verifi
 | VirtualBox | RPM Fusion | Oracle repository, Secure Boot-aware signing |
 | Roboto font | `google-roboto-fonts` RPM | Latest upstream release |
 | `argyllcms`, `chkrootkit`, `unhide` | Installed | Dropped (not available on EL10) |
+| Drawy, Telegram | `drawy`, `telegram-desktop` RPMs | Flathub (`org.kde.drawy`, `org.telegram.desktop`; not packaged for EL10) |
 
 ## 📄 License
 

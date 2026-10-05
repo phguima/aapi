@@ -40,6 +40,7 @@ dnf_packages_common:
   - clamav
   - clamav-freshclam
 #  - darktable
+  - discord          # RPM Fusion nonfree
   - fastfetch
   - htop
   - hwinfo
@@ -76,10 +77,13 @@ dnf_packages_kde:
 flatpak_apps_common:
   - com.bitwarden.desktop
   - com.dec05eba.gpu_screen_recorder
+  - com.rtosta.zapzap
   - com.slack.Slack
   - com.spotify.Client
   - net.displaycal.DisplayCAL
 #  - org.ferdium.Ferdium
+  - org.kde.drawy    # DNF package on Fedora; not packaged for EL10
+  - org.telegram.desktop  # DNF package on Fedora; not packaged for EL10
   - org.zotero.Zotero
   - us.zoom.Zoom
 
