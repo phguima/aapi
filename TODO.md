@@ -27,3 +27,14 @@ Legend: 🔴 breaks the playbook · 🟠 works wrong / silently · 🟡 cosmetic
       - To re-check (with CRB, EPEL and RPM Fusion enabled):
         `dnf repoquery --qf "%{name}-%{version}" vlc-libs libheif` vs
         `dnf repoquery --requires vlc-plugins-freeworld libheif-freeworld | grep -E "^(vlc-libs|libheif)"`.
+
+## Molecule tests
+
+- [ ] Install Molecule with the podman driver (pipx, see `CLAUDE.md`) and add a `requirements`
+      note for it to the README.
+- [ ] Make the plays testable outside `localhost` (Molecule's inventory): the real run keeps
+      `inventory.ini`, the scenarios point `converge.yml` at the container.
+- [ ] Scenario `default` on `almalinux:10` (systemd image): full `site.yml` minus what needs real
+      hardware/grub, with `verify.yml` for CRB/EPEL/RPM Fusion, packages, VirtualBox repo, zsh.
+- [ ] Scenarios for Secure Boot on/off (VirtualBox signing key), GNOME (Ptyxis) and KDE.
+- [ ] Turn the manual recipes from AFPI's `CLAUDE.md` into scenario fixtures (`prepare.yml`).
