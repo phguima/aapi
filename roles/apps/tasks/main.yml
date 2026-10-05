@@ -167,6 +167,17 @@
   loop: "{{ flatpak_apps_common }}"
   tags: [software, flatpak, common]
 
+- name: Software | Grant extra folders to flatpak applications
+  ansible.builtin.command:
+    argv: "{{ ['flatpak', 'override', '--user'] + (item.value | map('regex_replace', '^', '--filesystem=') | list) + [item.key] }}"
+  become_user: "{{ user_name }}"
+  loop: "{{ flatpak_filesystem_overrides | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  changed_when: false
+  when: user_name != 'root'
+  tags: [software, flatpak, common]
+
 # --- Brave Installation ---
 - name: Brave | Add Brave repository
   ansible.builtin.yum_repository:

@@ -95,6 +95,13 @@ flatpak_apps_gnome:
 flatpak_apps_kde:
   - com.markopejic.downloader
 
+# Extra host folders granted to Flatpak apps (flatpak override --user --filesystem). The sandbox
+# only sees granted folders: a file dragged from anywhere else reaches the app as a path it cannot
+# open (ZapZap says the file has no content). ':ro' = read-only. The file picker needs no grant.
+flatpak_filesystem_overrides:
+  com.rtosta.zapzap:
+    - "{{ user_home }}/wks:ro"
+
 fonts_packages:
   - fira-code-fonts
 
