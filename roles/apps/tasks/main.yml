@@ -338,7 +338,7 @@
       Type=Application
       Name=Antigravity
       Comment=Agentic development platform
-      Exec={{ antigravity_ide_dir }}/antigravity %U
+      Exec={{ ([antigravity_ide_dir ~ '/antigravity', cedilla_ozone_flag] | select | join(' ')) }} %U
       Icon={{ user_home }}/.local/share/icons/hicolor/512x512/apps/antigravity.png
       Terminal=false
       Categories=Development;IDE;
@@ -350,6 +350,45 @@
   when: user_name != 'root' and (antigravity_ide_bin.stat.exists | default(false) or antigravity_ide_download | default({}) is changed)
   tags: [software, shortcuts, antigravity]
 
+# --- Cedilla: Chromium/Electron menu entries on XWayland (KDE) ---
+# See cedilla_x11_desktop_entries in group_vars. Entries of apps that are not installed are skipped.
+- name: Cedilla | Find the system menu entries
+  ansible.builtin.stat:
+    path: "/usr/share/applications/{{ item }}"
+  loop: "{{ cedilla_x11_desktop_entries }}"
+  register: cedilla_system_entries
+  when: cedilla_ozone_flag != '' and user_name != 'root'
+  tags: [desktop, cedilla, shortcuts]
+
+- name: Cedilla | Copy the menu entries to the user (kept if already there)
+  ansible.builtin.copy:
+    src: "{{ item.stat.path }}"
+    dest: "{{ user_home }}/.local/share/applications/{{ item.item }}"
+    remote_src: true
+    force: false
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+  loop: "{{ cedilla_system_entries.results | default([]) | selectattr('stat', 'defined') | selectattr('stat.exists') }}"
+  loop_control:
+    label: "{{ item.item }}"
+  register: cedilla_user_entries
+  tags: [desktop, cedilla, shortcuts]
+
+# The lookahead (?=\s|$) keeps \S+ from backtracking into the middle of the command, so a line
+# that already has the flag never matches again. In --check a copy that was only reported does not
+# exist yet: skip it.
+- name: Cedilla | Add the XWayland flag to the Exec lines
+  ansible.builtin.replace:
+    path: "{{ item.dest }}"
+    regexp: '^(Exec=\S+)(?=\s|$)(?! {{ cedilla_ozone_flag | regex_escape }})'
+    replace: '\1 {{ cedilla_ozone_flag }}'
+  loop: "{{ cedilla_user_entries.results | default([]) | selectattr('dest', 'defined') }}"
+  loop_control:
+    label: "{{ item.item.item }}"
+  when: not (ansible_check_mode and item is changed)
+  tags: [desktop, cedilla, shortcuts]
+
 - name: Shortcuts | Update desktop database
   ansible.builtin.command:
     cmd: "update-desktop-database {{ user_home }}/.local/share/applications/"
@@ -359,13 +398,15 @@
   tags: [software, shortcuts, antigravity]
 
 # --- Flatpak overrides and cedilla fixes ---
-# Bitwarden runs on native Wayland (the Flatpak wrapper picks the display mode from the granted
-# sockets); the cedilla works there without GTK_IM_MODULE. X11 stays only as a fallback.
-- name: Wayland | Apply Flatpak overrides for Bitwarden (KDE)
+# See cedilla_flatpak_overrides in group_vars: Slack, Spotify and Bitwarden run on X11, where the
+# cedilla from ~/.XCompose works; ZapZap (Qt) stays on Wayland.
+- name: Cedilla | Apply Flatpak overrides (KDE)
   ansible.builtin.command:
-    cmd: "flatpak override --user --socket=wayland --socket=fallback-x11 --nosocket=x11 --unset-env=GTK_IM_MODULE --env=XDG_CURRENT_DESKTOP=KDE --env=GTK_USE_PORTAL=1 com.bitwarden.desktop"
+    argv: "{{ ['flatpak', 'override', '--user'] + item.value + [item.key] }}"
   become_user: "{{ user_name }}"
-  register: bitwarden_override_kde
+  loop: "{{ cedilla_flatpak_overrides | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
   failed_when: false
   changed_when: false
   when: is_kde and user_name != 'root'

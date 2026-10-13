@@ -102,6 +102,42 @@ flatpak_filesystem_overrides:
   com.rtosta.zapzap:
     - "{{ user_home }}/wks:ro"
 
+# Cedilla (ç) on KDE. On native Wayland, Chromium/Electron apps ignore ~/.XCompose under KWin 6.6
+# (EL10): Brave, VS Code, Antigravity, Slack, Spotify and Bitwarden type "ć" (they worked with
+# Plasma 6.7 on Fedora 44). On XWayland they read it through GTK, so on KDE they run on X11.
+cedilla_ozone_flag: "{{ '--ozone-platform=x11' if is_kde | default(false) else '' }}"
+# System menu entries copied to ~/.local/share/applications (the copy wins over the system one)
+# with the flag on every Exec line. An existing copy is kept: only its Exec lines get the flag.
+# VS Code's argv.json does not accept ozone-platform, hence its entries here too.
+cedilla_x11_desktop_entries:
+  - brave-browser.desktop
+  - brave-origin.desktop
+  - com.brave.Browser.desktop
+  - com.brave.Origin.desktop
+  - com.microsoft.VSCode.desktop
+  - com.microsoft.VSCode.UrlHandler.desktop
+# Flatpaks only see ~/.XCompose when it is granted. The Electron ones also lose the Wayland socket;
+# XDG_SESSION_TYPE=x11, or Slack still insists on Wayland and crashes. On X11, GTK takes its theme
+# from XSETTINGS (Breeze-Dark), which Flathub does not ship (only Breeze, dark variant included),
+# so the apps would turn light without GTK_THEME.
+cedilla_flatpak_gtk_theme: "Breeze:dark"
+cedilla_flatpak_x11_args:
+  - --socket=x11
+  - --nosocket=wayland
+  - --unset-env=WAYLAND_DISPLAY
+  - --env=XDG_SESSION_TYPE=x11
+  - "--env=GTK_THEME={{ cedilla_flatpak_gtk_theme }}"
+  - "--filesystem={{ user_home }}/.XCompose:ro"
+cedilla_flatpak_overrides:
+  com.slack.Slack: "{{ cedilla_flatpak_x11_args }}"
+  com.spotify.Client: "{{ cedilla_flatpak_x11_args }}"
+  # Its wrapper picks --ozone-platform=x11 when only DISPLAY is set
+  com.bitwarden.desktop: "{{ cedilla_flatpak_x11_args + ['--unset-env=GTK_IM_MODULE', '--env=XDG_CURRENT_DESKTOP=KDE', '--env=GTK_USE_PORTAL=1'] }}"
+  # Qt reads ~/.XCompose itself through its compose input context, so ZapZap stays on Wayland
+  com.rtosta.zapzap:
+    - "--filesystem={{ user_home }}/.XCompose:ro"
+    - --env=QT_IM_MODULE=compose
+
 fonts_packages:
   - fira-code-fonts
 
@@ -171,7 +207,10 @@ zsh_aliases_common: |
 zsh_aliases_user: |
   alias claudecli="cd ~/wks; clear; claude"
   alias agycli="cd ~/wks; clear; agy"
-  alias antigravity-ide='"{{ antigravity_ide_dir }}/antigravity"'
+  alias antigravity-ide='"{{ antigravity_ide_dir }}/antigravity"{{ (' ' ~ cedilla_ozone_flag) if cedilla_ozone_flag else '' }}'
+  {% if cedilla_ozone_flag %}
+  alias code='code {{ cedilla_ozone_flag }}'
+  {% endif %}
   alias full-update="flatpak update -y; sudo npm update -g; sudo dnf upgrade --refresh -y; dnf needs-restarting -r"
 
 # PTYxis Settings
