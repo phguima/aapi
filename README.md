@@ -1,7 +1,10 @@
 # AAPI (Ansible AlmaLinux Post-Install) - Ansible Role-Based
 
-[![Project Status: Active](https://img.shields.io/badge/Project%20Status-Active-brightgreen.svg)](#-project-status)
+[![Project Status: Frozen](https://img.shields.io/badge/Project%20Status-Frozen-lightgrey.svg)](#-project-status)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
+> [!IMPORTANT]
+> **Frozen on October 22, 2026: use [ALPI](https://github.com/phguima/alpi) instead.** ALPI (Ansible Linux Post-Install) unifies AFPI (Fedora) and AAPI (AlmaLinux 10) in one playbook that detects the distribution, and has reached parity with both. This repository stays as it is (1.1.0) for reference: no new features or fixes.
 
 AAPI is a modular system for AlmaLinux 10 workstation post-installation. It is a port of AFPI (Ansible Fedora Post-Install) and keeps its architecture based on **Roles** and environment-aware variables (Jinja2), so desktop customization and hardware setup are applied consistently and the workstation deployment is fully automated.
 
